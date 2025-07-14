@@ -1,0 +1,38 @@
+{
+  "name": "magical-mixers",
+  "version": "1.0.0",
+  "description": "An open-source engine for communicating with digital mixers with nodejs.",
+  "type": "module",
+  "main": "./core/index.js",
+  "scripts": {
+    "x18": "npx nodemon ./src/virtual-device/x18/index.js",
+    "lint": "eslint ."
+  },
+  "keywords": [
+    "digital",
+    "mixers",
+    "behringer",
+    "midas"
+  ],
+  "author": {
+    "name": "Matías Barrios",
+    "email": "matias@magicalmixingconsole.com"
+  },
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/matiasbarrios/magical-mixers/issues"
+  },
+  "homepage": "https://github.com/matiasbarrios/magical-mixers#readme",
+  "dependencies": {
+    "buffer": "^6.0.3",
+    "d3": "^7.9.0",
+    "isomorphic-dompurify": "^2.25.0",
+     "netmask": "^2.0.2"
+  },
+	"devDependencies": {
+		"@eslint/js": "^9.31.0",
+		"eslint": "^9.31.0",
+		"eslint-plugin-import": "^2.32.0",
+		"globals": "^16.3.0"
+	}
+}

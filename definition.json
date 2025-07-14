@@ -1,0 +1,951 @@
+{
+    "deviceId": "string",
+    "ip": "string",
+    "port": "number",
+    "name": "string",
+    "model": "string",
+    "brand": "string",
+    "firmware": "string",
+    "features": {
+        "cacheRefetch": "() => undefined",
+        "cacheClear": "() => undefined",
+        "automix": {
+            "has": "(callback) => undefined",
+            "options": "[{'id':'number','name':'string'}]",
+            "on": {
+                "has": "(automixId, callback) => undefined",
+                "read": "(automixId) => any",
+                "get": "(automixId, callback) => function",
+                "set": "(automixId, value) => undefined"
+            },
+            "lock": {
+                "has": "(automixId, callback) => undefined",
+                "read": "(automixId) => any",
+                "get": "(automixId, callback) => function",
+                "set": "(automixId, value) => undefined"
+            }
+        },
+        "bus": {
+            "has": "(callback) => undefined",
+            "options": "[{'id':'number','type':'string','number':'string'}]",
+            "name": {
+                "has": "(busId, callback) => undefined",
+                "read": "(busId) => any",
+                "get": "(busId, callback) => function",
+                "set": "(busId, value) => undefined"
+            },
+            "color": {
+                "has": "(busId, callback) => undefined",
+                "read": "(busId) => any",
+                "get": "(busId, callback) => function",
+                "set": "(busId, value) => undefined",
+                "options": "(busId) => array",
+                "defaultOption": "(busId) => object"
+            },
+            "icon": {
+                "has": "(busId, callback) => undefined",
+                "read": "(busId) => any",
+                "get": "(busId, callback) => function",
+                "set": "(busId, value) => undefined",
+                "options": "(busId) => array",
+                "defaultOption": "(busId) => object"
+            },
+            "disabled": {
+                "has": "(busId, callback) => undefined",
+                "read": "(busId) => any",
+                "get": "(busId, callback) => function"
+            },
+            "mute": {
+                "has": "(busId, callback) => undefined",
+                "read": "(busId) => any",
+                "get": "(busId, callback) => function",
+                "set": "(busId, value) => undefined"
+            },
+            "level": {
+                "has": "(busId, callback) => undefined",
+                "read": "(busId) => any",
+                "get": "(busId, callback) => function",
+                "set": "(busId, value) => undefined",
+                "minimum": "number",
+                "maximum": "number",
+                "pre": {
+                    "has": "(busId, callback) => undefined",
+                    "get": "(busId, callback) => function"
+                },
+                "post": {
+                    "has": "(busId, callback) => undefined",
+                    "get": "(busId, callback) => function"
+                }
+            },
+            "pan": {
+                "has": "(busId, callback) => undefined",
+                "read": "(busId) => any",
+                "get": "(busId, callback) => function",
+                "set": "(busId, value) => undefined",
+                "minimum": "number",
+                "maximum": "number",
+                "defaultValue": "number"
+            },
+            "polarity": {
+                "has": "(busId, callback) => undefined",
+                "read": "(busId) => any",
+                "get": "(busId, callback) => function",
+                "set": "(busId, value) => undefined"
+            },
+            "stereoLink": {
+                "has": "(busId, callback) => undefined",
+                "read": "(busId) => any",
+                "get": "(busId, callback) => function",
+                "set": "(busId, value) => undefined",
+                "side": "(busId) => string",
+                "pair": "(busId) => number"
+            },
+            "lowCut": {
+                "has": "(busId, callback) => undefined",
+                "on": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined"
+                },
+                "frequency": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined",
+                    "minimum": "number",
+                    "maximum": "number"
+                }
+            },
+            "input": {
+                "has": "(busId, callback) => undefined",
+                "id": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, id) => undefined",
+                    "options": "(busId) => array",
+                    "defaultOption": "(busId) => object"
+                },
+                "trim": {
+                    "has": "(busId, inputId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, inputId, callback) => function",
+                    "set": "(busId, inputId, value) => undefined",
+                    "minimum": "number",
+                    "maximum": "number",
+                    "defaultValue": "number",
+                    "pre": {
+                        "has": "(busId, inputId, callback) => undefined",
+                        "get": "(busId, inputId, callback) => function"
+                    },
+                    "post": {
+                        "has": "(busId, inputId, callback) => undefined",
+                        "get": "(busId, inputId, callback) => function"
+                    }
+                },
+                "volume": {
+                    "has": "(busId, callback) => undefined",
+                    "get": "(busId, callback) => function"
+                }
+            },
+            "equalizer": {
+                "has": "(busId, callback) => undefined",
+                "on": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined"
+                },
+                "mode": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined",
+                    "options": "(busId) => array",
+                    "defaultOption": "(busId) => object"
+                },
+                "parametric": {
+                    "has": "(busId, callback) => undefined",
+                    "options": "(busId) => array",
+                    "on": {
+                        "has": "(busId, parameterId, callback) => undefined",
+                        "read": "(busId) => any",
+                        "get": "(busId, parameterId, callback) => function",
+                        "set": "(busId, parameterId, value) => undefined"
+                    },
+                    "type": {
+                        "has": "(busId, parameterId, callback) => undefined",
+                        "read": "(busId, parameterId) => any",
+                        "get": "(busId, parameterId, callback) => function",
+                        "set": "(busId, parameterId, value) => undefined",
+                        "options": "(busId, parameterId) => array",
+                        "defaultOption": "(busId, parameterId) => object"
+                    },
+                    "frequency": {
+                        "has": "(busId, parameterId, callback) => undefined",
+                        "read": "(busId, parameterId) => any",
+                        "get": "(busId, parameterId, callback) => function",
+                        "set": "(busId, parameterId, value) => undefined",
+                        "minimum": "() => number",
+                        "maximum": "(busId, parameterId) => number"
+                    },
+                    "q": {
+                        "has": "(busId, parameterId, callback) => undefined",
+                        "read": "(busId, parameterId) => any",
+                        "get": "(busId, parameterId, callback) => function",
+                        "set": "(busId, parameterId, value) => undefined",
+                        "minimum": "number",
+                        "maximum": "number",
+                        "defaultValue": "number"
+                    },
+                    "gain": {
+                        "has": "(busId, parameterId, callback) => undefined",
+                        "read": "(busId, parameterId) => any",
+                        "get": "(busId, parameterId, callback) => function",
+                        "set": "(busId, parameterId, value) => undefined",
+                        "minimum": "number",
+                        "maximum": "number",
+                        "defaultValue": "number"
+                    },
+                    "isLowCut": "(busId, parameterId) => boolean"
+                },
+                "graphic": {
+                    "has": "(busId, callback) => undefined",
+                    "options": "(busId) => array",
+                    "gain": {
+                        "has": "(busId, graphId, callback) => undefined",
+                        "read": "(busId, graphId) => any",
+                        "get": "(busId, graphId, callback) => function",
+                        "set": "(busId, graphId, value) => undefined",
+                        "minimum": "number",
+                        "maximum": "number",
+                        "defaultValue": "number"
+                    }
+                },
+                "true": {
+                    "has": "(busId, callback) => undefined",
+                    "options": "(busId) => array",
+                    "gain": {
+                        "has": "(busId, graphId, callback) => undefined",
+                        "read": "(busId, graphId) => any",
+                        "get": "(busId, graphId, callback) => function",
+                        "set": "(busId, graphId, value) => undefined",
+                        "minimum": "number",
+                        "maximum": "number",
+                        "defaultValue": "number"
+                    }
+                },
+                "pre": {
+                    "has": "(busId, callback) => undefined",
+                    "get": "(busId, callback) => function"
+                },
+                "post": {
+                    "has": "(busId, callback) => undefined",
+                    "get": "(busId, callback) => function"
+                }
+            },
+            "compressor": {
+                "has": "(busId, callback) => undefined",
+                "on": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined"
+                },
+                "mode": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined",
+                    "options": "(busId) => array",
+                    "defaultOption": "(busId) => object"
+                },
+                "knee": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined",
+                    "minimum": "number",
+                    "maximum": "number",
+                    "step": "number"
+                },
+                "threshold": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined",
+                    "minimum": "number",
+                    "maximum": "number"
+                },
+                "ratio": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined",
+                    "options": "(busId) => array",
+                    "defaultOption": "(busId) => object"
+                },
+                "mix": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined",
+                    "minimum": "number",
+                    "maximum": "number"
+                },
+                "gain": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined",
+                    "minimum": "number",
+                    "maximum": "number"
+                },
+                "envelope": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined",
+                    "options": "(busId) => array",
+                    "defaultOption": "(busId) => object"
+                },
+                "determination": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined",
+                    "options": "(busId) => array",
+                    "defaultOption": "(busId) => object"
+                },
+                "automatic": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined"
+                },
+                "attack": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined",
+                    "minimum": "number",
+                    "maximum": "number"
+                },
+                "hold": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined",
+                    "minimum": "number",
+                    "maximum": "number"
+                },
+                "release": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined",
+                    "minimum": "number",
+                    "maximum": "number"
+                },
+                "sidechain": {
+                    "has": "(busId, callback) => undefined",
+                    "on": {
+                        "has": "(busId, callback) => undefined",
+                        "read": "(busId) => any",
+                        "get": "(busId, callback) => function",
+                        "set": "(busId, value) => undefined"
+                    },
+                    "source": {
+                        "has": "(busId, callback) => undefined",
+                        "read": "(busId) => any",
+                        "get": "(busId, callback) => function",
+                        "set": "(busId, value) => undefined",
+                        "options": "(busId) => array",
+                        "defaultOption": "(busId) => object"
+                    },
+                    "type": {
+                        "has": "(busId, callback) => undefined",
+                        "read": "(busId) => any",
+                        "get": "(busId, callback) => function",
+                        "set": "(busId, value) => undefined",
+                        "options": "(busId) => array",
+                        "defaultOption": "(busId) => object"
+                    },
+                    "frequency": {
+                        "has": "(busId, callback) => undefined",
+                        "read": "(busId) => any",
+                        "get": "(busId, callback) => function",
+                        "set": "(busId, value) => undefined",
+                        "minimum": "number",
+                        "maximum": "number"
+                    }
+                },
+                "gainReduction": {
+                    "has": "(busId, callback) => undefined",
+                    "get": "(busId, callback) => function"
+                },
+                "key": {
+                    "has": "(busId, callback) => undefined",
+                    "get": "(busId, callback) => function"
+                }
+            },
+            "gate": {
+                "has": "(busId, callback) => undefined",
+                "on": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined"
+                },
+                "mode": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined",
+                    "options": "(busId) => array",
+                    "defaultOption": "(busId) => object"
+                },
+                "threshold": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined",
+                    "minimum": "number",
+                    "maximum": "number"
+                },
+                "range": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined",
+                    "minimum": "number",
+                    "maximum": "number"
+                },
+                "attack": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined",
+                    "minimum": "number",
+                    "maximum": "number"
+                },
+                "hold": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined",
+                    "minimum": "number",
+                    "maximum": "number"
+                },
+                "release": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined",
+                    "minimum": "number",
+                    "maximum": "number"
+                },
+                "sidechain": {
+                    "has": "(busId, callback) => undefined",
+                    "on": {
+                        "has": "(busId, callback) => undefined",
+                        "read": "(busId) => any",
+                        "get": "(busId, callback) => function",
+                        "set": "(busId, value) => undefined"
+                    },
+                    "source": {
+                        "has": "(busId, callback) => undefined",
+                        "read": "(busId) => any",
+                        "get": "(busId, callback) => function",
+                        "set": "(busId, value) => undefined",
+                        "options": "(busId) => array",
+                        "defaultOption": "(busId) => object"
+                    },
+                    "type": {
+                        "has": "(busId, callback) => undefined",
+                        "read": "(busId) => any",
+                        "get": "(busId, callback) => function",
+                        "set": "(busId, value) => undefined",
+                        "options": "(busId) => array",
+                        "defaultOption": "(busId) => object"
+                    },
+                    "frequency": {
+                        "has": "(busId, callback) => undefined",
+                        "read": "(busId) => any",
+                        "get": "(busId, callback) => function",
+                        "set": "(busId, value) => undefined",
+                        "minimum": "number",
+                        "maximum": "number"
+                    }
+                },
+                "gainReduction": {
+                    "has": "(busId, callback) => undefined",
+                    "get": "(busId, callback) => function"
+                },
+                "key": {
+                    "has": "(busId, callback) => undefined",
+                    "get": "(busId, callback) => function"
+                }
+            },
+            "fx": {
+                "has": "(busId, callback) => undefined",
+                "id": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "() => undefined",
+                    "options": "(busId) => array"
+                },
+                "on": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined"
+                },
+                "gain": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined",
+                    "minimum": "number",
+                    "maximum": "number"
+                }
+            },
+            "insert": {
+                "has": "(busId, callback) => undefined",
+                "on": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined"
+                },
+                "fx": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined",
+                    "options": "(busId) => array",
+                    "unassignedOption": {
+                        "id": "number",
+                        "name": "string",
+                        "fxId": "object"
+                    }
+                }
+            },
+            "monitor": {
+                "has": "(busId, callback) => undefined",
+                "mono": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined"
+                },
+                "channelLineEffectTap": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined",
+                    "options": "(busId) => array",
+                    "defaultOption": "(busId) => object"
+                },
+                "secondaryTap": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined",
+                    "options": "(busId) => array",
+                    "defaultOption": "(busId) => object"
+                },
+                "source": {
+                    "has": "(busId, callback) => undefined",
+                    "id": {
+                        "has": "(busId, callback) => undefined",
+                        "read": "(busId) => any",
+                        "get": "(busId, callback) => function",
+                        "set": "(busId, value) => undefined",
+                        "options": "(busId) => array",
+                        "defaultOption": "(busId) => object"
+                    },
+                    "trim": {
+                        "has": "(busId, callback) => undefined",
+                        "read": "(busId) => any",
+                        "get": "(busId, callback) => function",
+                        "set": "(busId, value) => undefined",
+                        "minimum": "number",
+                        "maximum": "number",
+                        "defaultValue": "number"
+                    }
+                },
+                "dim": {
+                    "has": "(busId, callback) => undefined",
+                    "on": {
+                        "has": "(busId, callback) => undefined",
+                        "read": "(busId) => any",
+                        "get": "(busId, callback) => function",
+                        "set": "(busId, value) => undefined"
+                    },
+                    "attenuation": {
+                        "has": "(busId, callback) => undefined",
+                        "read": "(busId) => any",
+                        "get": "(busId, callback) => function",
+                        "set": "(busId, value) => undefined",
+                        "minimum": "number",
+                        "maximum": "number"
+                    },
+                    "atPreLevel": {
+                        "has": "(busId, callback) => undefined",
+                        "read": "(busId) => any",
+                        "get": "(busId, callback) => function",
+                        "set": "(busId, value) => undefined"
+                    }
+                }
+            },
+            "automix": {
+                "has": "(busId, callback) => undefined",
+                "id": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined",
+                    "options": "(busId) => array",
+                    "defaultOption": "(busId) => object"
+                },
+                "weight": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined",
+                    "minimum": "number",
+                    "maximum": "number",
+                    "defaultValue": "number"
+                },
+                "gainReduction": {
+                    "has": "(busId, callback) => undefined",
+                    "get": "(busId, callback) => function"
+                }
+            },
+            "dca": {
+                "has": "(busId, callback) => undefined",
+                "on": {
+                    "has": "(busId, dcaId, callback) => undefined",
+                    "read": "(busId, dcaId) => any",
+                    "get": "(busId, dcaId, callback) => function",
+                    "set": "(busId, dcaId, value) => undefined"
+                },
+                "options": "(busId) => array"
+            },
+            "mg": {
+                "has": "(busId, callback) => undefined",
+                "on": {
+                    "has": "(busId, mgId, callback) => undefined",
+                    "read": "(busId, mgId) => any",
+                    "get": "(busId, mgId, callback) => function",
+                    "set": "(busId, mgId, value) => undefined"
+                },
+                "options": "(busId) => array"
+            },
+            "to": {
+                "has": "(busId, callback) => undefined",
+                "on": {
+                    "has": "(busIdFrom, busIdTo, callback) => undefined",
+                    "read": "(busIdFrom, busIdTo) => any",
+                    "get": "(busIdFrom, busIdTo, callback) => function",
+                    "set": "(busIdFrom, busIdTo, value) => undefined"
+                },
+                "level": {
+                    "has": "(busIdFrom, busIdTo, callback) => undefined",
+                    "read": "(busIdFrom, busIdTo) => any",
+                    "get": "(busIdFrom, busIdTo, callback) => function",
+                    "set": "(busIdFrom, busIdTo, value) => undefined",
+                    "minimum": "number",
+                    "maximum": "number"
+                },
+                "pan": {
+                    "has": "(busIdFrom, busIdTo, callback) => undefined",
+                    "read": "(busIdFrom, busIdTo) => any",
+                    "get": "(busIdFrom, busIdTo, callback) => function",
+                    "set": "(busIdFrom, busIdTo, value) => undefined",
+                    "minimum": "number",
+                    "maximum": "number",
+                    "defaultValue": "number"
+                },
+                "tap": {
+                    "has": "(busIdFrom, busIdTo, callback) => undefined",
+                    "read": "(busIdFrom, busIdTo) => any",
+                    "get": "(busIdFrom, busIdTo, callback) => function",
+                    "set": "(busIdFrom, busIdTo, value) => undefined",
+                    "options": "(busIdFrom, busIdTo) => array",
+                    "defaultOption": "(busIdFrom, busIdTo) => object"
+                },
+                "meter": {
+                    "has": "(busIdFrom, busIdTo, callback) => undefined",
+                    "get": "(busIdFrom, busIdTo, callback) => function"
+                },
+                "options": "(busId) => array"
+            },
+            "rta": {
+                "has": "(busId, callback) => undefined",
+                "position": {
+                    "has": "(busId, callback) => undefined",
+                    "read": "(busId) => any",
+                    "get": "(busId, callback) => function",
+                    "set": "(busId, value) => undefined",
+                    "options": "(busId) => array"
+                },
+                "get": "(busId, callback) => function"
+            }
+        },
+        "configuration": {
+            "has": "(callback) => undefined",
+            "categories": "[{'id':'string','name':'string'}]",
+            "options": "[{'optionId':'string','categoryId':'string','categoryOptionId':'string'}]",
+            "reset": "() => undefined",
+            "categoryId": {
+                "optionId": {
+                    "name": "string",
+                    "type": "string",
+                    "minLength": "number || function",
+                    "maxLength": "number || fucntion",
+                    "options": "array",
+                    "hideIf": "() => undefined",
+                    "isValid": "() => undefined",
+                    "has": "(callback) => undefined",
+                    "read": "() => any",
+                    "get": "(callback) => function",
+                    "set": "(value) => undefined"
+                }
+            }
+        },
+        "dca": {
+            "has": "(callback) => undefined",
+            "options": "[{'id':'number','number':'string'}]",
+            "name": {
+                "has": "(dcaId, callback) => undefined",
+                "read": "(dcaId) => any",
+                "get": "(dcaId, callback) => function",
+                "set": "(dcaId, value) => undefined"
+            },
+            "color": {
+                "has": "(dcaId, callback) => undefined",
+                "read": "(dcaId) => any",
+                "get": "(dcaId, callback) => function",
+                "set": "(dcaId, value) => undefined",
+                "options": "(dcaId) => array",
+                "defaultOption": "(dcaId) => object"
+            },
+            "icon": {
+                "has": "(dcaId, callback) => undefined",
+                "read": "(dcaId) => any",
+                "get": "(dcaId, callback) => function",
+                "set": "(dcaId, value) => undefined",
+                "options": "(dcaId) => array",
+                "defaultOption": "(dcaId) => object"
+            },
+            "mute": {
+                "has": "(dcaId, callback) => undefined",
+                "read": "(dcaId) => any",
+                "get": "(dcaId, callback) => function",
+                "set": "(dcaId, value) => undefined"
+            },
+            "level": {
+                "has": "(dcaId, callback) => undefined",
+                "read": "(dcaId) => any",
+                "get": "(dcaId, callback) => function",
+                "set": "(dcaId, value) => undefined",
+                "minimum": "number",
+                "maximum": "number",
+                "pre": {
+                    "has": "(dcaId, callback) => undefined",
+                    "get": "(dcaId, callback) => function"
+                },
+                "post": {
+                    "has": "(dcaId, callback) => undefined",
+                    "get": "(dcaId, callback) => function"
+                }
+            },
+            "solo": {
+                "has": "(dcaId, callback) => undefined",
+                "read": "(dcaId) => any",
+                "get": "(dcaId, callback) => function",
+                "set": "(dcaId, value) => undefined"
+            }
+        },
+        "fx": {
+            "has": "(callback) => undefined",
+            "options": "[{'id':'number','name':'string','number':'string','busId':'number'}]",
+            "insert": {
+                "has": "(fxId, callback) => undefined",
+                "on": {
+                    "has": "(fxId, callback) => undefined",
+                    "read": "(fxId) => any",
+                    "get": "(fxId, callback) => function",
+                    "set": "(fxId, value) => undefined"
+                },
+                "left": {
+                    "has": "(fxId, callback) => undefined",
+                    "read": "(fxId) => any",
+                    "get": "(fxId, callback) => function",
+                    "set": "(fxId, newBusId) => undefined",
+                    "options": "(fxId) => array",
+                    "defaultOption": "(fxId) => object"
+                },
+                "right": {
+                    "has": "(fxId, callback) => undefined",
+                    "read": "(fxId) => any",
+                    "get": "(fxId, callback) => function",
+                    "set": "(fxId, newBusId) => undefined",
+                    "options": "(fxId) => array",
+                    "defaultOption": "(fxId) => object"
+                }
+            },
+            "bus": {
+                "has": "(fxId, callback) => undefined",
+                "read": "(fxId) => any",
+                "get": "(fxId, callback) => function",
+                "set": "() => undefined",
+                "options": "(fxId) => array"
+            },
+            "type": {
+                "has": "(fxId, callback) => undefined",
+                "read": "(fxId) => any",
+                "get": "(fxId, callback) => function",
+                "set": "(fxId, value) => undefined",
+                "options": "(fxId) => array",
+                "defaultOption": "(fxId) => object"
+            },
+            "parameters": {
+                "has": "(fxId, typeId, callback) => undefined",
+                "options": "(fxId, typeId) => array",
+                "parameter": {
+                    "has": "(fxId, typeId, parameterId, callback) => undefined",
+                    "read": "(fxId, typeId, parameterId) => any",
+                    "get": "(fxId, typeId, parameterId, callback) => function",
+                    "set": "(fxId, typeId, parameterId, value) => undefined"
+                }
+            }
+        },
+        "input": {
+            "has": "(callback) => undefined",
+            "options": "[{'id':'number','models':'['string']','stereo':'boolean','type':'string','number':'string'}]",
+            "name": {
+                "has": "(inputId, callback) => undefined",
+                "read": "(inputId) => any",
+                "get": "(inputId, callback) => function",
+                "set": "(inputId, value) => undefined"
+            },
+            "gain": {
+                "has": "(inputId, callback) => undefined",
+                "read": "(inputId) => any",
+                "get": "(inputId, callback) => function",
+                "set": "(inputId, value) => undefined",
+                "minimum": "(inputId) => number",
+                "maximum": "(inputId) => number",
+                "defaultValue": "number",
+                "post": {
+                    "has": "(inputId, callback) => undefined",
+                    "get": "(inputId, callback) => function"
+                }
+            },
+            "phantom": {
+                "has": "(inputId, callback) => undefined",
+                "read": "(inputId) => any",
+                "get": "(inputId, callback) => function",
+                "set": "(inputId, value) => undefined"
+            }
+        },
+        "mg": {
+            "has": "(callback) => undefined",
+            "options": "[{'id':'number','number':'string'}]",
+            "name": {
+                "has": "(mgId, callback) => undefined",
+                "read": "(mgId) => any",
+                "get": "(mgId, callback) => function",
+                "set": "(mgId, value) => undefined"
+            },
+            "icon": {
+                "has": "(mgId, callback) => undefined",
+                "read": "(mgId) => any",
+                "get": "(mgId, callback) => function",
+                "set": "(mgId, value) => undefined",
+                "options": "(mgId) => array",
+                "defaultOption": "(mgId) => object"
+            },
+            "mute": {
+                "has": "(mgId, callback) => undefined",
+                "read": "(mgId) => any",
+                "get": "(mgId, callback) => function",
+                "set": "(mgId, value) => undefined"
+            }
+        },
+        "output": {
+            "has": "(callback) => undefined",
+            "options": "[{'id':'number','models':'['string']','stereo':'boolean','type':'string','number':'string','xAirId':'number'}]",
+            "name": {
+                "has": "(outputId, callback) => undefined",
+                "read": "(outputId) => any",
+                "get": "(outputId, callback) => function",
+                "set": "(outputId, value) => undefined"
+            },
+            "source": {
+                "has": "(outputId, callback) => undefined",
+                "read": "(outputId) => any",
+                "get": "(outputId, callback) => function",
+                "set": "(outputId, value) => undefined",
+                "options": "(outputId) => array",
+                "defaultOption": "(outputId) => object"
+            },
+            "tap": {
+                "has": "(outputId, callback) => undefined",
+                "read": "(outputId) => any",
+                "get": "(outputId, callback) => function",
+                "set": "(outputId, value) => undefined",
+                "options": "(outputId) => array",
+                "defaultOption": "(outputId) => object"
+            },
+            "volume": {
+                "has": "(outputId, callback) => undefined",
+                "get": "(outputId, callback) => function"
+            }
+        },
+        "scene": {
+            "has": "(callback) => undefined",
+            "name": {
+                "has": "(sceneId, callback) => undefined",
+                "read": "(sceneId) => any",
+                "get": "(sceneId, callback) => function",
+                "set": "(sceneId, value) => undefined"
+            },
+            "scope": {
+                "has": "(sceneId, callback) => undefined",
+                "on": {
+                    "has": "(sceneId, scopeId, callback) => undefined",
+                    "read": "(sceneId, scopeId) => any",
+                    "get": "(sceneId, scopeId, callback) => function",
+                    "set": "(sceneId, scopeId, value) => undefined"
+                },
+                "options": "(sceneId) => array"
+            },
+            "active": {
+                "has": "(sceneId, callback) => undefined",
+                "read": "(sceneId) => any",
+                "get": "(sceneId, callback) => function"
+            },
+            "save": "(sceneId, sceneName) => undefined",
+            "erase": "(sceneId) => undefined",
+            "load": "(sceneId) => undefined",
+            "options": "[{'id':'number','number':'string'}]"
+        }
+    },
+    "connect": "() => undefined",
+    "online": {
+        "has": "(callback) => undefined",
+        "read": "() => any",
+        "get": "(callback) => function"
+    },
+    "halt": "() => undefined",
+    "resume": "() => undefined",
+    "disconnect": "() => undefined",
+    "dispose": "() => undefined",
+    "initialize": "() => undefined"
+}
