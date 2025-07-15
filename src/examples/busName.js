@@ -1,12 +1,5 @@
 // Requirements
-import { searchNew, mixersInitialize } from '../core/index.js';
-import { getLANBroadcastAddress } from '../virtual-device/helpers/lan.js';
-import {
-    udpSocketOpen,
-    udpSocketClose,
-    udpMessageSend,
-    onUDPMessageReceived,
-} from '../virtual-device/helpers/udp.js';
+import { searchNew, initialize } from '../core/index.js';
 import { isValidIP, isValidPort } from '../core/helpers/values.js';
 
 
@@ -62,14 +55,6 @@ const onDeviceFound = search => async (data) => {
 
 // Main
 const main = async () => {
-    mixersInitialize({
-        getLANBroadcastAddress,
-        udpSocketOpen,
-        udpSocketClose,
-        udpMessageSend,
-        onUDPMessageReceived,
-    });
-
     const ip = process.argv.length > 2 ? process.argv[2] : null;
     const port = process.argv.length > 3 ? process.argv[3] : null;
 
@@ -79,6 +64,7 @@ const main = async () => {
     }
 
     console.log(`Searching for ${ip}:${port}`);
+    initialize();
     const search = searchNew();
     await search.inIPPort(ip, port, onDeviceFound(search), async () => {
         await search.stop();

@@ -1,5 +1,5 @@
 // Requirements
-import { scaleLinear } from 'd3';
+import { scaleLinear } from 'd3-scale';
 import { ONE, xAirSubscriptionBuild } from '../../shared.js';
 import { noneOption, options } from '../automix/options.js';
 import { busIsOfType, busOsc } from './options.js';

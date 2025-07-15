@@ -3,9 +3,25 @@
   "version": "1.0.0",
   "description": "An open-source engine for communicating with digital mixers with nodejs.",
   "type": "module",
-  "main": "./core/index.js",
+  "main": "./dist/index.cjs",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist/",
+    "bin/x18-mixer.mjs"
+  ],
+  "bin": {
+    "x18-mixer": "./bin/x18-mixer.mjs"
+  },
   "scripts": {
-    "x18": "npx nodemon ./src/virtual-device/x18/index.js",
+    "build-mjs": "esbuild src/index.js --bundle --platform=node --format=esm --outfile=dist/index.mjs --external:buffer --external:d3-scale --external:isomorphic-dompurify --external:netmask --external:dgram --external:os",
+    "build-cjs": "esbuild src/index.js --bundle --platform=node --format=cjs --outfile=dist/index.cjs --external:buffer --external:d3-scale --external:isomorphic-dompurify --external:netmask --external:dgram --external:os",
+    "build": "npm run build-mjs && npm run build-cjs",
+    "x18": "npx nodemon ./src/virtual-device/x18/run.js",
     "lint": "eslint ."
   },
   "keywords": [
@@ -26,13 +42,15 @@
   "dependencies": {
     "buffer": "^6.0.3",
     "d3": "^7.9.0",
+    "d3-scale": "^4.0.2",
     "isomorphic-dompurify": "^2.25.0",
-     "netmask": "^2.0.2"
+    "netmask": "^2.0.2"
   },
-	"devDependencies": {
-		"@eslint/js": "^9.31.0",
-		"eslint": "^9.31.0",
-		"eslint-plugin-import": "^2.32.0",
-		"globals": "^16.3.0"
-	}
+  "devDependencies": {
+    "@eslint/js": "^9.31.0",
+    "esbuild": "^0.25.6",
+    "eslint": "^9.31.0",
+    "eslint-plugin-import": "^2.32.0",
+    "globals": "^16.3.0"
+  }
 }

@@ -1,27 +1,22 @@
 // Requirements
+import { nodePlatform } from '../platforms/index.js';
 import { lanSetProvider } from './helpers/lan.js';
-import { fromBuffer, toBuffer } from './helpers/osc.js';
 import { udpOSCSetProvider } from './controllers/udpOSC/index.js';
 
 
 // Exported
-export const oscFromBuffer = fromBuffer;
-
-
-export const oscToBuffer = toBuffer;
-
-
 export { searchNew } from './devices/search.js';
 
 
-export const mixersInitialize = (platform) => {
+export const initialize = (platform) => {
+    const p = platform || nodePlatform;
     lanSetProvider({
-        getLANBroadcastAddress: platform.getLANBroadcastAddress,
+        getLANBroadcastAddress: p.getLANBroadcastAddress,
     });
     udpOSCSetProvider({
-        udpSocketOpen: platform.udpSocketOpen,
-        udpSocketClose: platform.udpSocketClose,
-        udpMessageSend: platform.udpMessageSend,
-        onUDPMessageReceived: platform.onUDPMessageReceived,
+        udpSocketOpen: p.udpSocketOpen,
+        udpSocketClose: p.udpSocketClose,
+        udpMessageSend: p.udpMessageSend,
+        onUDPMessageReceived: p.onUDPMessageReceived,
     });
 };

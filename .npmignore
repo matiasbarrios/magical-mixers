@@ -1,0 +1,7 @@
+.vscode/
+node_modules/
+src/
+.gitignore
+definition.json
+eslint.config.js
+package-lock.json

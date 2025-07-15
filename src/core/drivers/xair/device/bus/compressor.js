@@ -1,5 +1,5 @@
 // Requirements
-import { scaleLinear, scaleLog } from 'd3';
+import { scaleLinear, scaleLog } from 'd3-scale';
 import { binaryToBoolean, booleanToBinary } from '../../../../helpers/values.js';
 import { ONE, xAirSubscriptionBuild } from '../../shared.js';
 import { busOsc, busIsOfType, busIdToMetersZeroId } from './options.js';

@@ -1,5 +1,5 @@
 // Requirements
-import { scaleLog } from 'd3';
+import { scaleLog } from 'd3-scale';
 import { binaryToBoolean, booleanToBinary } from '../../../../helpers/values.js';
 import { ONE } from '../../shared.js';
 import { busOsc, busIsOfType } from './options.js';

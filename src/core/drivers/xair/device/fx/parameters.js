@@ -1,5 +1,5 @@
 // Requirements
-import { scaleLinear, scaleLog } from 'd3';
+import { scaleLinear, scaleLog } from 'd3-scale';
 import { ONE } from '../../shared.js';
 import { fxOsc } from './options.js';
 import { types } from './type/index.js';

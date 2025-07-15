@@ -1,5 +1,5 @@
 // Requirements
-import { scaleLog } from 'd3';
+import { scaleLog } from 'd3-scale';
 import { ONE, xAirSubscriptionBuild } from '../../shared.js';
 
 
