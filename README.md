@@ -36,11 +36,26 @@ If you want to develop your own app that can handle the digital mixers supported
 npm install magical-mixers
 ```
 
+## Searching for devices
+
+You can run LAN searches for devices with the following script in the examples folder:
+
+```bash
+node src/examples/search.js
+```
+
+If you're having connection problems with your device, this script will help debug what's going on.
+
+
+## Virtual device
+
 You can run a virtual X18 digital mixer (for development or testing) with:
 
 ```bash
 npx x18-mixer
 ```
+
+## Hello World
 
 You'll also be able to connect to the device and access its features:
 

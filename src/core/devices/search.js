@@ -83,9 +83,9 @@ export const searchNew = () => {
     };
 
 
-    n.start = async (ip, port) => {
+    n.start = async (ip, port, debugMode = false) => {
         if (n._searching) return;
-        await n._drivers.searchStart(ip, port);
+        await n._drivers.searchStart(ip, port, debugMode);
         n._searching = true;
     };
 

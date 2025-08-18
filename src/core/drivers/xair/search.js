@@ -19,9 +19,13 @@ export const xAirSearchNew = (onFound) => {
     n._searchInterval = null;
 
 
-    n._xAirOnDeviceFound = (ip, port, ...values) => {
+    n._xAirOnDeviceFound = debugMode => (ip, port, ...values) => {
         // Only process messages with expected number of parameters
         // This avoids processing our own broadcast messages
+        if (debugMode) {
+            console.log(`XAir | Responded to /xinfo | ${ip}:${port} | `, JSON.stringify(values));
+        }
+
         if (values?.length !== 4) return;
 
         const [, name, model, firmware] = values;
@@ -53,7 +57,7 @@ export const xAirSearchNew = (onFound) => {
 
 
     // Exported
-    n.searchStart = async (ip, port) => {
+    n.searchStart = async (ip, port, debugMode = false) => {
         // If already searching, stop , just in case
         await n.searchStop();
 
@@ -66,7 +70,10 @@ export const xAirSearchNew = (onFound) => {
             // Open
             await n._udpOSCForSearching[nextI].open();
             // Listen for results
-            n._udpOSCForSearching[nextI].addListener('/xinfo', n._xAirOnDeviceFound);
+            n._udpOSCForSearching[nextI].addListener('/xinfo', n._xAirOnDeviceFound(debugMode));
+            if (debugMode) {
+                console.log(`XAir | Searching on interface ${ipFinal}:${portFinal}`);
+            }
             nextI += 1;
         };
 

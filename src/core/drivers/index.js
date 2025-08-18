@@ -12,8 +12,8 @@ export const driversNew = (onFound) => {
 
 
     // Exported
-    n.searchStart = async (ip, port) => {
-        await Promise.all(n._drivers.map(d => d.searchStart(ip, port)));
+    n.searchStart = async (ip, port, debugMode = false) => {
+        await Promise.all(n._drivers.map(d => d.searchStart(ip, port, debugMode)));
     };
 
 
