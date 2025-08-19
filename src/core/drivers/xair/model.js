@@ -1,11 +1,11 @@
 // Exported
-export const models18 = ['X18', 'XR18', 'MR18'];
+export const models18 = ['X18', 'XR18', 'MR18', 'X18V2', 'XR18V2', 'MR18V2'];
 
 
-export const models16 = ['XR16'];
+export const models16 = ['XR16', 'XR16V2'];
 
 
-export const models12 = ['XR12', 'MR12'];
+export const models12 = ['XR12', 'MR12', 'XR12V2', 'MR12V2'];
 
 
 export const modelsSupported = [...models18, ...models16, ...models12];

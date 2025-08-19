@@ -64,9 +64,14 @@ optionsPerModelAndOutputType.X18.phones = optionsPerModelAndOutputType.X18.main;
 optionsPerModelAndOutputType.X18.ultranet = optionsPerModelAndOutputType.X18.analog;
 optionsPerModelAndOutputType.XR18 = optionsPerModelAndOutputType.X18;
 optionsPerModelAndOutputType.MR18 = optionsPerModelAndOutputType.X18;
+optionsPerModelAndOutputType.X18V2 = optionsPerModelAndOutputType.X18;
+optionsPerModelAndOutputType.XR18V2 = optionsPerModelAndOutputType.X18;
+optionsPerModelAndOutputType.MR18V2 = optionsPerModelAndOutputType.X18;
 optionsPerModelAndOutputType.XR16.phones = optionsPerModelAndOutputType.XR16.main;
 optionsPerModelAndOutputType.XR12 = optionsPerModelAndOutputType.XR16;
 optionsPerModelAndOutputType.MR12 = optionsPerModelAndOutputType.XR12;
+optionsPerModelAndOutputType.XR12V2 = optionsPerModelAndOutputType.XR12;
+optionsPerModelAndOutputType.MR12V2 = optionsPerModelAndOutputType.XR12;
 
 
 const defaultSourcePerOutput = {

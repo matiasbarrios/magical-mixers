@@ -292,7 +292,13 @@ const optionsPerModelAndBusType = {
 };
 optionsPerModelAndBusType.XR18 = optionsPerModelAndBusType.X18;
 optionsPerModelAndBusType.MR18 = optionsPerModelAndBusType.X18;
+optionsPerModelAndBusType.X18V2 = optionsPerModelAndBusType.X18;
+optionsPerModelAndBusType.XR18V2 = optionsPerModelAndBusType.X18;
+optionsPerModelAndBusType.MR18V2 = optionsPerModelAndBusType.X18;
+optionsPerModelAndBusType.XR16V2 = optionsPerModelAndBusType.XR16;
 optionsPerModelAndBusType.MR12 = optionsPerModelAndBusType.XR12;
+optionsPerModelAndBusType.XR12V2 = optionsPerModelAndBusType.XR12;
+optionsPerModelAndBusType.MR12V2 = optionsPerModelAndBusType.XR12;
 
 
 // Exported
