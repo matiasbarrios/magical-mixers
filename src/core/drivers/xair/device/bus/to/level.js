@@ -236,6 +236,71 @@ const toLevelGet = (read, get) => (busIdFrom, busIdTo, callback) => {
 };
 
 
+const toLevelIsBusLevelRead = read => (busIdFrom, busIdTo) => {
+    const from = busGet(busIdFrom);
+    const to = busGet(busIdTo);
+
+    if (to.type === 'main') {
+        if (['secondary', 'effect', 'line', 'channel'].includes(from.type)) return true;
+    }
+    if (to.type === 'monitor') {
+        if (from.type === 'main') return true;
+        if (from.type === 'secondary' && monitorSecondaryTapIsPostLevel(read, busIdTo)) return true;
+        if (['effect', 'line', 'channel'].includes(from.type)
+            && monitorChannelLineEffectTapIsPostLevel(read, busIdTo)) return true;
+    }
+    if (['secondary', 'effect'].includes(to.type)) {
+        if (['effect', 'line', 'channel'].includes(from.type)) {
+            return toTapIsSameLevel(read, busIdFrom, busIdTo);
+        }
+    }
+
+    return false;
+};
+
+
+const toLevelIsBusLevelGet = (read, get) => (busIdFrom, busIdTo, callback) => {
+    const onGotten = () => callback(toLevelIsBusLevelRead(read)(busIdFrom, busIdTo));
+
+    const from = busGet(busIdFrom);
+    const to = busGet(busIdTo);
+
+    if (to.type === 'main') {
+        if (['secondary', 'effect', 'line', 'channel'].includes(from.type)) {
+            onGotten();
+            return undefined;
+        }
+    }
+    if (to.type === 'monitor') {
+        if (from.type === 'main') {
+            onGotten();
+            return undefined;
+        }
+        if (from.type === 'secondary') {
+            return monitorSecondaryTapGet(get)(busIdTo, onGotten);
+        }
+        if (['effect', 'line', 'channel'].includes(from.type)) {
+            return monitorChannelLineEffectTapGet(get)(busIdTo, onGotten);
+        }
+    }
+    if (['secondary', 'effect'].includes(to.type)) {
+        if (['effect', 'line', 'channel'].includes(from.type)) {
+            return toTapGet(read, get)(busIdFrom, busIdTo, onGotten);
+        }
+    }
+
+    onGotten();
+    return undefined;
+};
+
+
+const toLevelIsBusLevel = (read, get) => ({
+    has: toLevelHas(read, get),
+    read: toLevelIsBusLevelRead(read),
+    get: toLevelIsBusLevelGet(read, get),
+});
+
+
 const toLevelSet = (read, set) => (busIdFrom, busIdTo, value) => {
     const from = busGet(busIdFrom);
     const to = busGet(busIdTo);
@@ -245,8 +310,8 @@ const toLevelSet = (read, set) => (busIdFrom, busIdTo, value) => {
     const setToLevel = () => set(osc(busIdFrom, busIdTo), value, dbToDecimal);
 
     const setToSecondaryLevel = () => {
-        if (toTapIsSameLevel(read, busIdFrom, busIdTo)) setFromLevel();
-        else setToLevel();
+        if (value <= DB_MINIMUM || !toTapIsSameLevel(read, busIdFrom, busIdTo)) setToLevel();
+        else setFromLevel();
     };
 
     if (from.type === 'main') {
@@ -297,6 +362,7 @@ export const level = ({ read, get, set }) => ({
     read: toLevelRead(read),
     get: toLevelGet(read, get),
     set: toLevelSet(read, set),
+    isBusLevel: toLevelIsBusLevel(read, get),
     minimum: DB_MINIMUM,
     maximum: DB_MAXIMUM,
 });

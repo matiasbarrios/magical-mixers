@@ -5,7 +5,7 @@ import {
     udpMessageSend,
     onUDPMessageReceived,
 } from './node/udp.js';
-import { getLANBroadcastAddress } from './node/lan.js';
+import { getLANBroadcastAddress, getLocalAddressForIP } from './node/lan.js';
 
 
 // Exported
@@ -15,4 +15,5 @@ export const nodePlatform = {
     udpMessageSend,
     onUDPMessageReceived,
     getLANBroadcastAddress,
+    getLocalAddressForIP,
 };

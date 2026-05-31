@@ -2,6 +2,7 @@
 const TTL = 5 * 1000;
 const CHECK_ONLINE_INTERVAL = 1 * 1000;
 const RESUME_CHECK_ONLINE_DELAY = 300;
+const RECONNECT_REFETCH_DELAY = 500;
 
 
 // Internal
@@ -16,14 +17,24 @@ export const deviceNew = (data, driver) => {
     n._onlineListeners = {};
 
     n._online = true;
+    n._halted = false;
     n._connected = false;
     n._ttl = Date.now();
     n._keepAliveInterval = null;
     n._checkOnlineInterval = null;
+    n._reconnectRefetchTimer = null;
+
+    n._nextHaltedListenerId = 1;
+    n._haltedListeners = {};
 
 
     n._onOnlineUpdated = () => {
         Object.values(n._onlineListeners).forEach(c => c(n._online));
+    };
+
+
+    n._onHaltedUpdated = () => {
+        Object.values(n._haltedListeners).forEach(c => c(n._halted));
     };
 
 
@@ -32,17 +43,39 @@ export const deviceNew = (data, driver) => {
     };
 
 
+    n._clearReconnectRefetch = () => {
+        if (!n._reconnectRefetchTimer) return;
+        clearTimeout(n._reconnectRefetchTimer);
+        n._reconnectRefetchTimer = null;
+    };
+
+
+    n._scheduleReconnectRefetch = () => {
+        n._clearReconnectRefetch();
+        n._reconnectRefetchTimer = setTimeout(async () => {
+            n._reconnectRefetchTimer = null;
+            if (!n._connected || !n._online || n._halted || !n.features?.cacheRefetch) return;
+            if (n.features.sendQueueDrained) await n.features.sendQueueDrained();
+            if (!n._connected || !n._online || n._halted) return;
+            n.features.cacheRefetch({ purgeFrozen: true });
+        }, RECONNECT_REFETCH_DELAY);
+    };
+
+
     n._checkOnline = () => {
-        let changed = false;
+        if (n._halted) return false;
+
         const isOnline = n._ttl + TTL >= Date.now();
-        changed = n._online !== isOnline;
+        const changed = n._online !== isOnline;
 
         // We are connected and there has been a change in the online status
         n._online = isOnline;
         if (n._connected && changed) {
-            // If back online, we could have dirty data
             if (isOnline) {
-                n.features.cacheRefetch();
+                // Defer refetch until the link is stable and keepalive traffic has drained.
+                n._scheduleReconnectRefetch();
+            } else {
+                n._clearReconnectRefetch();
             }
         }
 
@@ -62,6 +95,8 @@ export const deviceNew = (data, driver) => {
     n.model = data.model;
     n.brand = data.brand;
     n.firmware = data.firmware;
+
+    n._initData = data;
 
     n.features = null;
 
@@ -93,7 +128,29 @@ export const deviceNew = (data, driver) => {
     };
 
 
+    n.halted = {
+        has: (callback) => { callback(n._halted); },
+        read: () => n._halted,
+        get: (callback) => {
+            const key = `l${n._nextHaltedListenerId}`;
+            n._nextHaltedListenerId += 1;
+            n._haltedListeners[key] = callback;
+
+            callback(n._halted);
+
+            return () => {
+                delete n._haltedListeners[key];
+            };
+        },
+    };
+
+
     n.halt = async () => {
+        if (n._halted) return;
+
+        n._halted = true;
+        n._onHaltedUpdated();
+
         // Stop the keep alive
         if (n._keepAliveInterval) {
             clearInterval(n._keepAliveInterval);
@@ -103,21 +160,23 @@ export const deviceNew = (data, driver) => {
             clearInterval(n._checkOnlineInterval);
             n._checkOnlineInterval = null;
         }
-        n._ttl = 0;
 
         // Halt the driver
         await n._driver.halt();
-
-        // Trigger the update online status
-        n._checkOnline();
     };
 
 
     n.resume = async () => {
+        if (!n._halted) return;
+
+        n._halted = false;
+        n._onHaltedUpdated();
+
         // Resume the driver
         await n._driver.resume();
 
         // Restore the keep alive
+        n._driver.keepAlive();
         n._keepAliveInterval = setInterval(n._driver.keepAlive, n._driver.keepAliveDelay);
         n._checkOnlineInterval = setInterval(n._checkOnline, CHECK_ONLINE_INTERVAL);
 
@@ -138,6 +197,8 @@ export const deviceNew = (data, driver) => {
         // Disconnect if so
         await n.disconnect();
 
+        n._clearReconnectRefetch();
+
         // Clear the intervals
         if (n._keepAliveInterval) {
             clearInterval(n._keepAliveInterval);
@@ -154,7 +215,8 @@ export const deviceNew = (data, driver) => {
 
 
     n.initialize = async () => {
-        await driver.initialize(n._onKeepAlive);
+        await n._driver.initialize(n._onKeepAlive, n._initData);
+        n._initData = { ...n._initData, searchSocket: null };
         n.features = n._driver.features;
 
         n._keepAliveInterval = setInterval(n._driver.keepAlive, n._driver.keepAliveDelay);

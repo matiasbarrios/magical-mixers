@@ -56,7 +56,7 @@ const onDeviceFound = search => async (data) => {
 // Main
 const main = async () => {
     const ip = process.argv.length > 2 ? process.argv[2] : null;
-    const port = process.argv.length > 3 ? process.argv[3] : null;
+    const port = process.argv.length > 3 ? parseInt(process.argv[3], 10) : null;
 
     if (!isValidIP(ip) || !isValidPort(port)) {
         console.error('Invalid IP or port');

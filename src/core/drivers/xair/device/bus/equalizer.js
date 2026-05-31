@@ -1,5 +1,5 @@
 // Requirements
-import { scaleLog, scaleLinear } from 'd3-scale';
+import { scaleLog, scaleLinear } from '../../../../helpers/scale.js';
 import { binaryToBoolean, booleanToBinary, dbAbsoluteMinimum } from '../../../../helpers/values.js';
 import { ONE, xAirSubscriptionBuild } from '../../shared.js';
 import { inputPostSubscription } from '../input/gain.js';

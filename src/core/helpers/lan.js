@@ -8,7 +8,13 @@ export const lanSetProvider = (p) => {
 };
 
 
-export const getLANBroadcastAddress = () => {
+export const getLANInterfaces = () => {
     if (!provider) return null;
-    return provider.getLANBroadcastAddress();
+    return provider.getLANBroadcastAddress?.() ?? provider.getLANInterfaces?.();
+};
+
+
+export const getLocalAddressForIP = (targetIp) => {
+    if (!provider?.getLocalAddressForIP) return null;
+    return provider.getLocalAddressForIP(targetIp);
 };

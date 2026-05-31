@@ -1,6 +1,6 @@
 // Requirements
 import { Buffer } from 'buffer';
-import { scaleLinear } from 'd3-scale';
+import { scaleLinear } from '../../core/helpers/scale.js';
 import { fromBuffer as oscFromBuffer, toBuffer as oscToBuffer } from '../../core/helpers/osc.js';
 import { nodePlatform } from '../../platforms/index.js';
 import { addressesValues } from './adressesValues.js';

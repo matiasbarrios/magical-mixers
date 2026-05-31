@@ -12,6 +12,7 @@ export const initialize = (platform) => {
     const p = platform || nodePlatform;
     lanSetProvider({
         getLANBroadcastAddress: p.getLANBroadcastAddress,
+        getLocalAddressForIP: p.getLocalAddressForIP,
     });
     udpOSCSetProvider({
         udpSocketOpen: p.udpSocketOpen,

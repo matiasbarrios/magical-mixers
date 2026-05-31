@@ -27,8 +27,6 @@ const meterHas = (busIdFrom, busIdTo, callback) => {
     const from = busGet(busIdFrom);
     const to = busGet(busIdTo);
 
-    let unlistener;
-
     if (from.type === 'main') {
         if (to.type === 'main') callback(false);
         if (to.type === 'monitor') callback(true);
@@ -78,7 +76,7 @@ const meterHas = (busIdFrom, busIdTo, callback) => {
         if (to.type === 'channel') callback(false);
     }
 
-    return unlistener;
+    return undefined;
 };
 
 

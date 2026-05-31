@@ -62,7 +62,7 @@ export const networkWifiClient = ({ read, get, set }) => ({
         set: v => set('/-prefs/is/security', v),
     },
     key: {
-        name: 'Key',
+        name: 'Password',
         type: 'password',
         minLength: values => (values['networkWifiClient-securityType'] === 1 ? 13 : 1),
         maxLength: values => (values['networkWifiClient-securityType'] === 1 ? 13 : 32),

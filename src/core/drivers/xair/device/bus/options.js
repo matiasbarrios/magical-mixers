@@ -1,97 +1,111 @@
 // Requirements
 import { pad } from '../../../../helpers/values.js';
+import {
+    models18, models16, modelsSupported,
+} from '../../model.js';
+
+
+// Constants
+const models18Only = models18;
+
+const models18And16 = [...models18, ...models16];
+
+const modelsAll = modelsSupported;
 
 
 // Exported
 export const options = [
     {
-        id: 0, type: 'channel', number: '1',
+        id: 0, type: 'channel', number: '1', models: modelsAll,
     },
     {
-        id: 1, type: 'channel', number: '2',
+        id: 1, type: 'channel', number: '2', models: modelsAll,
     },
     {
-        id: 2, type: 'channel', number: '3',
+        id: 2, type: 'channel', number: '3', models: modelsAll,
     },
     {
-        id: 3, type: 'channel', number: '4',
+        id: 3, type: 'channel', number: '4', models: modelsAll,
     },
     {
-        id: 4, type: 'channel', number: '5',
+        id: 4, type: 'channel', number: '5', models: modelsAll,
     },
     {
-        id: 5, type: 'channel', number: '6',
+        id: 5, type: 'channel', number: '6', models: modelsAll,
     },
     {
-        id: 6, type: 'channel', number: '7',
+        id: 6, type: 'channel', number: '7', models: modelsAll,
     },
     {
-        id: 7, type: 'channel', number: '8',
+        id: 7, type: 'channel', number: '8', models: modelsAll,
     },
     {
-        id: 8, type: 'channel', number: '9',
+        id: 8, type: 'channel', number: '9', models: modelsAll,
     },
     {
-        id: 9, type: 'channel', number: '10',
+        id: 9, type: 'channel', number: '10', models: modelsAll,
     },
     {
-        id: 10, type: 'channel', number: '11',
+        id: 10, type: 'channel', number: '11', models: modelsAll,
     },
     {
-        id: 11, type: 'channel', number: '12',
+        id: 11, type: 'channel', number: '12', models: modelsAll,
     },
     {
-        id: 12, type: 'channel', number: '13',
+        id: 12, type: 'channel', number: '13', models: models18And16,
     },
     {
-        id: 13, type: 'channel', number: '14',
+        id: 13, type: 'channel', number: '14', models: models18And16,
     },
     {
-        id: 14, type: 'channel', number: '15',
+        id: 14, type: 'channel', number: '15', models: models18And16,
     },
     {
-        id: 15, type: 'channel', number: '16',
+        id: 15, type: 'channel', number: '16', models: models18And16,
     },
     {
-        id: 16, type: 'line', number: '17/18',
+        id: 16, type: 'line', number: '17/18', models: models18Only,
     },
     {
-        id: 17, type: 'effect', number: '1', fxId: 0,
+        id: 17, type: 'effect', number: '1', fxId: 0, models: modelsAll,
     },
     {
-        id: 18, type: 'effect', number: '2', fxId: 1,
+        id: 18, type: 'effect', number: '2', fxId: 1, models: modelsAll,
     },
     {
-        id: 19, type: 'effect', number: '3', fxId: 2,
+        id: 19, type: 'effect', number: '3', fxId: 2, models: modelsAll,
     },
     {
-        id: 20, type: 'effect', number: '4', fxId: 3,
+        id: 20, type: 'effect', number: '4', fxId: 3, models: modelsAll,
     },
     {
-        id: 21, type: 'secondary', number: '1',
+        id: 21, type: 'secondary', number: '1', models: modelsAll,
     },
     {
-        id: 22, type: 'secondary', number: '2',
+        id: 22, type: 'secondary', number: '2', models: modelsAll,
     },
     {
-        id: 23, type: 'secondary', number: '3',
+        id: 23, type: 'secondary', number: '3', models: modelsAll,
     },
     {
-        id: 24, type: 'secondary', number: '4',
+        id: 24, type: 'secondary', number: '4', models: modelsAll,
     },
     {
-        id: 25, type: 'secondary', number: '5',
+        id: 25, type: 'secondary', number: '5', models: models18And16,
     },
     {
-        id: 26, type: 'secondary', number: '6',
+        id: 26, type: 'secondary', number: '6', models: models18And16,
     },
     {
-        id: 27, type: 'main', number: '',
+        id: 27, type: 'main', number: '', models: modelsAll,
     },
     {
-        id: 28, type: 'monitor', number: '',
+        id: 28, type: 'monitor', number: '', models: modelsAll,
     },
 ];
+
+
+export const optionsForModel = model => options.filter(option => option.models.includes(model));
 
 
 export const busesMainAndMonitor = options.slice(27, 29);

@@ -208,6 +208,33 @@ const toPanGet = (read, get) => (busIdFrom, busIdTo, callback) => {
 };
 
 
+const toPanIsBusPanRead = () => (busIdFrom, busIdTo) => {
+    const from = busGet(busIdFrom);
+    const to = busGet(busIdTo);
+
+    if (to.type === 'main' || to.type === 'monitor') {
+        if (from.type === 'main' && to.type === 'monitor') return true;
+        if (from.type === 'secondary') return true;
+        if (['effect', 'line', 'channel'].includes(from.type)) return true;
+    }
+
+    return false;
+};
+
+
+const toPanIsBusPanGet = () => (busIdFrom, busIdTo, callback) => {
+    callback(toPanIsBusPanRead()(busIdFrom, busIdTo));
+    return undefined;
+};
+
+
+const toPanIsBusPan = (read, get) => ({
+    has: toPanHas(read, get),
+    read: toPanIsBusPanRead(),
+    get: toPanIsBusPanGet(),
+});
+
+
 const toPanSet = (read, set) => (busIdFrom, busIdTo, value) => {
     const from = busGet(busIdFrom);
     const to = busGet(busIdTo);
@@ -262,6 +289,7 @@ export const pan = ({ read, get, set }) => ({
     read: toPanRead(read),
     get: toPanGet(read, get),
     set: toPanSet(read, set),
+    isBusPan: toPanIsBusPan(read, get),
     minimum: MINIMUM,
     maximum: MAXIMUM,
     defaultValue: 0,

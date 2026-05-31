@@ -1,8 +1,10 @@
 // Requirements
+import { getLocalAddressForIP, getLANInterfaces } from '../../helpers/lan.js';
 import { cacheNew } from './cache.js';
 import { oscMessageSend, oscMessageReceived } from './osc.js';
+import { sendQueueNew } from './sendQueue.js';
 import {
-    udpSetProvider, udpSocketOpen, udpSocketClose, udpMessageSend,
+    udpSetProvider, udpSocketOpen, udpSocketRetarget, udpSocketClose, udpMessageSend,
 } from './udp.js';
 
 
@@ -21,27 +23,62 @@ const getCallbackKey = (e) => {
 };
 
 
+const getBindAddressCandidates = (bindAddress, targetIp) => {
+    const candidates = new Set();
+    if (bindAddress) candidates.add(bindAddress);
+    const inferred = getLocalAddressForIP(targetIp);
+    if (inferred) candidates.add(inferred);
+    getLANInterfaces()?.forEach(({ localAddress }) => {
+        if (localAddress && localAddress !== '127.0.0.1') candidates.add(localAddress);
+    });
+    return [...candidates];
+};
+
+
+const openBoundSocket = async (onMessageReceived, bindAddress, targetIp, enableBroadcast = false) => {
+    const candidates = getBindAddressCandidates(bindAddress, targetIp);
+
+    const tryCandidate = async (index) => {
+        if (index >= candidates.length) {
+            throw new Error(`Unable to bind UDP socket for ${targetIp || bindAddress || 'LAN'}`);
+        }
+        try {
+            return await udpSocketOpen(onMessageReceived, candidates[index], enableBroadcast);
+        } catch (error) {
+            return tryCandidate(index + 1);
+        }
+    };
+
+    return tryCandidate(0);
+};
+
+
 // Exported
 export const udpOSCSetProvider = udpSetProvider;
 
 
-export const udpOSCControllerNew = (ip, port) => {
+export const udpOSCControllerNew = (ip, port, bindAddress) => {
     const n = {};
 
 
     // Variables
     n._ip = ip;
     n._port = port;
+    n._bindAddress = bindAddress;
     n._socket = null;
     n._listeners = {};
     n._subscriptions = {};
-    n._sendNext = 0;
+    n._halted = false;
     n._doCapture = false;
     n._capturedValues = {};
+    n._sendQueue = sendQueueNew(DELAY_BETWEEN_MESSAGES);
+    n._fetchSendNext = 0;
 
 
     // Internal
     n._messageReceived = (message) => {
+        if (n._halted) return;
+
         const { address, values } = message;
 
         if (n._doCapture) n._capturedValues[address] = values?.length ? values[0] : null;
@@ -64,6 +101,43 @@ export const udpOSCControllerNew = (ip, port) => {
 
     n._onUDPMessageReceived = (buffer) => {
         oscMessageReceived(buffer, n._messageReceived);
+    };
+
+
+    n._stopSubscriptions = () => {
+        Object.values(n._subscriptions).forEach((listener) => {
+            if (listener.renewalInterval) {
+                clearInterval(listener.renewalInterval);
+                listener.renewalInterval = null;
+            }
+            if (n._socket && listener.unsubscribe) {
+                n.send(listener.unsubscribe.address, ...listener.unsubscribe.args);
+            }
+        });
+        n._subscriptions = {};
+    };
+
+
+    n._canSend = () => !!n._socket && !n._halted;
+
+    n._doSend = (address, ...args) => {
+        const udpSend = buffer => udpMessageSend(n._socket.socketId, n._ip, n._port, buffer);
+        oscMessageSend(udpSend, address, ...args);
+    };
+
+    n._teardown = () => {
+        n._stopSubscriptions();
+        n._listeners = {};
+        n._cache.dispose();
+        n._fetchSendNext = 0;
+        n._sendQueue.dispose();
+    };
+
+
+    n._removeListenerIfIdle = (address) => {
+        const listener = n._listeners[address];
+        if (!listener || Object.keys(listener.callbacks).length > 0) return;
+        delete n._listeners[address];
     };
 
 
@@ -97,36 +171,61 @@ export const udpOSCControllerNew = (ip, port) => {
 
     n.open = async () => {
         if (n._socket) return;
-        n._socket = await udpSocketOpen(n._onUDPMessageReceived);
+        n._socket = await openBoundSocket(n._onUDPMessageReceived, n._bindAddress, n._ip, false);
+    };
+
+
+    n.adoptSocket = async (socketWrapper) => {
+        if (n._socket) return;
+        n._socket = await udpSocketRetarget(socketWrapper, n._onUDPMessageReceived);
     };
 
 
     n.close = async () => {
-        if (!n._socket) return;
+        if (!n._socket) {
+            n._teardown();
+            return;
+        }
         const socketIdToClose = n._socket.socketId;
+        n._stopSubscriptions();
+        await n._sendQueue.drained();
+        n._listeners = {};
+        n._cache.dispose();
+        n._fetchSendNext = 0;
+        n._sendQueue.dispose();
         await udpSocketClose(socketIdToClose);
         n._socket = null;
-        n._sendNext = 0;
     };
 
 
-    n.send = (address, ...args) => {
-        if (!n._socket) return undefined;
+    n.send = (address, ...args) => (
+        n._sendQueue.enqueue(n._canSend, n._doSend, address, ...args)
+    );
 
-        // Let's calculate a general delay for not choking the device
+
+    // Paced like pre-queue send(): schedules all fetches up front so reads can be in flight together.
+    n.sendFetch = (address, ...args) => {
+        if (!n._canSend()) return undefined;
+
         const now = Date.now();
-        if (n._sendNext < now) n._sendNext = now;
-        n._sendNext += DELAY_BETWEEN_MESSAGES;
-        const delay = n._sendNext - now;
+        if (n._fetchSendNext < now) n._fetchSendNext = now;
+        n._fetchSendNext += DELAY_BETWEEN_MESSAGES;
+        const delay = n._fetchSendNext - now;
 
-        // Schedule it!
         setTimeout(() => {
-            if (!n._socket) return;
-            const udpSend = buffer => udpMessageSend(n._socket.socketId, n._ip, n._port, buffer);
-            oscMessageSend(udpSend, address, ...args);
+            if (!n._canSend()) return;
+            n._doSend(address, ...args);
         }, delay);
 
         return delay;
+    };
+
+
+    // Bypass the paced queue (session keepalive, etc.). Drivers choose when to use this.
+    n.sendImmediate = (address, ...args) => {
+        if (!n._canSend()) return undefined;
+        n._doSend(address, ...args);
+        return 0;
     };
 
 
@@ -148,13 +247,14 @@ export const udpOSCControllerNew = (ip, port) => {
         };
         const listenerRemoval = n.addListener(address, onGotten, listener, cacheKey);
 
+        n._cache.entryBindAddress(ck, address);
         // Get from caché if available, or fetch it
         n._cache.entryUnfreeze(ck);
         const value = n._cache.valueGet(ck);
         if (value !== undefined) {
             onGotten(value);
         } else {
-            n._cache.valueFetch(ck, (...args) => n.send(address, ...args));
+            n._cache.valueFetch(ck, (...args) => n.sendFetch(address, ...args));
         }
 
         // Return the unlistener
@@ -167,23 +267,24 @@ export const udpOSCControllerNew = (ip, port) => {
     ) => {
         if (!n._socket || !address) return;
 
-        // Just send the message
-        // If we are sending too many, the device will drop them naturally
-        // But otherwise, it affects the user experience, being animations less smooth
-        const v = (translateValue !== undefined) ? translateValue(value) : value;
+        const wireValue = (translateValue !== undefined) ? translateValue(value) : value;
 
-        oscMessageSend((buffer) => {
-            udpMessageSend(n._socket.socketId, n._ip, n._port, buffer);
-        }, address, v);
+        // Pace outbound sets like get/fetch — immediate send bursts choke the desk
+        n.send(address, wireValue);
 
-        // Save the new value in the caché
+        // Cache always stores domain values (same unit as read/get callbacks).
         if (!omitCache) {
-            n._cache.valueSet(cacheKey || address, v);
+            n._cache.valueSet(cacheKey || address, value);
         }
 
-        // Trigger the listeners too, faking the osc message
-        n._messageReceived({ address, values: [v] });
+        // Optimistic update: notify subscribers with domain value, not wire format.
+        if (n._listeners[address]) {
+            Object.values(n._listeners[address].callbacks).forEach(c => c(value));
+        }
     };
+
+
+    n.sendQueueDrained = () => n._sendQueue.drained();
 
 
     n.subscribe = (subscription, onValueGotten, translateValue) => {
@@ -208,6 +309,7 @@ export const udpOSCControllerNew = (ip, port) => {
                 subscriptionMessage,
                 renewal,
                 processMessage: onResponse,
+                unsubscribe,
                 callbacks: { [key]: valueGet },
                 renewalInterval: setInterval(subscriptionMessage, renewal),
             };
@@ -242,17 +344,19 @@ export const udpOSCControllerNew = (ip, port) => {
 
 
     n.halt = async () => {
+        n._halted = true;
         Object.values(n._subscriptions).forEach((l) => {
             if (!l.renewalInterval) return;
             clearInterval(l.renewalInterval);
             l.renewalInterval = null;
         });
-        await n.close();
+        n._sendQueue.dispose();
     };
 
 
     n.resume = async () => {
-        await n.open();
+        n._halted = false;
+        if (!n._socket) await n.open();
         Object.values(n._subscriptions).forEach((l) => {
             if (l.renewalInterval) return;
             l.subscriptionMessage();
@@ -261,8 +365,9 @@ export const udpOSCControllerNew = (ip, port) => {
     };
 
 
-    n.cacheRefetch = () => {
-        n._cache.refetch();
+    n.cacheRefetch = (options) => {
+        if (options?.purgeFrozen) n._cache.purgeFrozen();
+        n._cache.refetch(options);
     };
 
 
@@ -283,7 +388,11 @@ export const udpOSCControllerNew = (ip, port) => {
 
 
     // Initialize
-    n._cache = cacheNew();
+    n._cache = cacheNew({
+        onEvict: (_key, entry) => {
+            n._removeListenerIfIdle(entry.oscAddress || _key);
+        },
+    });
     n._cache.keepFresh();
 
 
@@ -291,13 +400,15 @@ export const udpOSCControllerNew = (ip, port) => {
 };
 
 
-export const udpOSCSearchNew = (ip, port) => {
+export const udpOSCSearchNew = (ip, port, bindAddress) => {
     const n = {};
 
     // Variables
     n._ip = ip;
     n._port = port;
+    n._bindAddress = bindAddress;
     n._socket = null;
+    n._adopted = false;
     n._broadcastListener = {};
 
 
@@ -321,12 +432,27 @@ export const udpOSCSearchNew = (ip, port) => {
 
     n.open = async () => {
         if (n._socket) return;
-        n._socket = await udpSocketOpen(n._onUDPMessageReceived);
+        n._socket = await openBoundSocket(n._onUDPMessageReceived, n._bindAddress, n._ip, true);
     };
 
 
+    n.detachSocket = async () => {
+        if (!n._socket) return null;
+        n._adopted = true;
+        const socket = n._socket;
+        n._socket = null;
+        if (socket.unlistenMessageReceived) {
+            await socket.unlistenMessageReceived();
+        }
+        return socket;
+    };
+
+
+    n.isLive = () => !!n._socket && !n._adopted;
+
+
     n.close = async () => {
-        if (!n._socket) return;
+        if (n._adopted || !n._socket) return;
         if (n._socket.unlistenMessageReceived) {
             await n._socket.unlistenMessageReceived();
         }

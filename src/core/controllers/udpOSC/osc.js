@@ -1,11 +1,11 @@
 // Requirements
-import DOMPurify from 'isomorphic-dompurify';
 import { fromBuffer, toBuffer } from '../../helpers/osc.js';
+import { sanitizeString } from '../../helpers/sanitize.js';
 import { isFloat, isInt } from '../../helpers/values.js';
 
 
 // Internal
-const sanitize = v => DOMPurify.sanitize(v, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+const sanitize = sanitizeString;
 
 
 const getOSCType = (v) => {

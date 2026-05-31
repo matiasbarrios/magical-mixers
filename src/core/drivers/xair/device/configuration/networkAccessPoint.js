@@ -43,7 +43,7 @@ export const networkAccessPoint = ({ read, get, set }) => ({
         set: v => set('/-prefs/ap/security', v),
     },
     key: {
-        name: 'Key',
+        name: 'Password',
         type: 'password',
         minLength: 13,
         maxLength: 13,

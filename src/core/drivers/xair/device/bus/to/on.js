@@ -261,6 +261,10 @@ const onSet = (read, set) => (busIdFrom, busIdTo, value) => {
     const setToOn = () => set(osc(busIdFrom, busIdTo), value, booleanToBinary);
 
     const setToSecondaryEffectOn = () => {
+        if (!value) {
+            set(groupOnOsc(busIdFrom, busIdTo), value, booleanToBinary);
+            return;
+        }
         if (!toTapIsSameLevel(read, busIdFrom, busIdTo)) return;
         set(groupOnOsc(busIdFrom, busIdTo), value, booleanToBinary);
     };

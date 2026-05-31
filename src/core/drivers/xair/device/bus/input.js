@@ -1,5 +1,5 @@
 // Requirements
-import { scaleLinear } from 'd3-scale';
+import { scaleLinear } from '../../../../helpers/scale.js';
 import { booleanToBinary } from '../../../../helpers/values.js';
 import { ONE, xAirSubscriptionBuild } from '../../shared.js';
 import {

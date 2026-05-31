@@ -1,5 +1,6 @@
 // Requirements
 import { udpOSCControllerNew } from '../../../controllers/udpOSC/index.js';
+import { getLocalAddressForIP } from '../../../helpers/lan.js';
 import { bus } from './bus/index.js';
 import { configuration } from './configuration/index.js';
 import { fx } from './fx/index.js';
@@ -23,7 +24,7 @@ export const xAirDeviceNew = (data) => {
 
 
     n.connect = async () => {
-        n._udpOSC.send('/xremotenfb');
+        n._udpOSC.sendImmediate('/xremotenfb');
     };
 
 
@@ -34,16 +35,16 @@ export const xAirDeviceNew = (data) => {
 
     n.resume = async () => {
         await n._udpOSC.resume();
-        n._udpOSC.send('/xremotenfb');
-        n._udpOSC.send('/status');
+        n._udpOSC.sendImmediate('/xremotenfb');
+        n._udpOSC.sendImmediate('/status');
     };
 
 
     n.keepAlive = () => {
         // Required by the driver to keep receiving updates, but no feedback from our settings
-        n._udpOSC.send('/xremotenfb');
+        n._udpOSC.sendImmediate('/xremotenfb');
         // Let's send this for pinging the device because we know we get an immediate answer
-        n._udpOSC.send('/status');
+        n._udpOSC.sendImmediate('/status');
     };
 
 
@@ -62,21 +63,31 @@ export const xAirDeviceNew = (data) => {
 
 
     // Initialize
-    n.initialize = async (onKeepAlive) => {
-        const { ip, port, model } = data;
+    n.initialize = async (onKeepAlive, initData = data) => {
+        const {
+            ip, port, model, localAddress, searchSocket,
+        } = initData;
+        const bindAddress = localAddress || getLocalAddressForIP(ip) || undefined;
 
         // Controller stuff
-        n._udpOSC = udpOSCControllerNew(ip, port);
-        await n._udpOSC.open();
+        n._udpOSC = udpOSCControllerNew(ip, port, bindAddress);
+        if (searchSocket) {
+            const socket = await searchSocket.detachSocket();
+            if (socket) await n._udpOSC.adoptSocket(socket);
+            else throw new Error('Search socket unavailable');
+        } else {
+            await n._udpOSC.open();
+        }
         n._keepAliveListenerRemove = n._udpOSC.addListener('/status', onKeepAlive);
         const {
-            cacheRefetch, cacheClear, read, get, set, subscribe,
+            cacheRefetch, cacheClear, read, get, set, subscribe, sendQueueDrained,
         } = n._udpOSC;
 
         // Features
         n.features = {
             cacheRefetch,
             cacheClear,
+            sendQueueDrained,
             automix: automix({ read, get, set }),
             bus: bus({
                 read, get, set, subscribe, model,

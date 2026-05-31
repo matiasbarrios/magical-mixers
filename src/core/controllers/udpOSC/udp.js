@@ -8,11 +8,22 @@ export const udpSetProvider = (p) => {
 };
 
 
-export const udpSocketOpen = async (onMessageReceived) => {
+export const udpSocketOpen = async (onMessageReceived, bindAddress, enableBroadcast = false) => {
     if (!provider) return null;
-    const socketId = await provider.udpSocketOpen();
+    const socketId = await provider.udpSocketOpen(bindAddress, undefined, enableBroadcast);
     const unlistenMessageReceived = provider.onUDPMessageReceived(onMessageReceived, socketId);
     return { socketId, unlistenMessageReceived };
+};
+
+
+export const udpSocketRetarget = async (socketWrapper, onMessageReceived) => {
+    if (!provider || !socketWrapper) return null;
+    if (socketWrapper.unlistenMessageReceived) {
+        await socketWrapper.unlistenMessageReceived();
+    }
+    const { socketId } = socketWrapper;
+    const unlistenMessageReceived = provider.onUDPMessageReceived(onMessageReceived, socketId);
+    return { socketId: socketWrapper.socketId, unlistenMessageReceived };
 };
 
 

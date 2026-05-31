@@ -7,35 +7,66 @@ let nextSocketId = 0;
 const sockets = {};
 
 
+// Internal
+const bindSocket = (socket, bindAddress, port, enableBroadcast) => new Promise((resolve, reject) => {
+    const onBound = (error) => {
+        if (error) {
+            reject(error);
+            return;
+        }
+        if (enableBroadcast) {
+            try {
+                socket.setBroadcast(true);
+            } catch (broadcastError) {
+                reject(broadcastError);
+                return;
+            }
+        }
+        resolve();
+    };
+
+    if (bindAddress && port) {
+        socket.bind({ port, address: bindAddress, exclusive: true }, onBound);
+    } else if (bindAddress) {
+        socket.bind(0, bindAddress, onBound);
+    } else {
+        socket.bind(onBound);
+    }
+});
+
+
+const getSocket = socketId => sockets[socketId] ?? null;
+
+
 // Exported
-export const udpSocketOpen = (address, port) => {
-    // Define the id
+export const udpSocketOpen = async (bindAddress, port, enableBroadcast = false) => {
     const socketId = nextSocketId;
     nextSocketId += 1;
 
-    // Create the UDP socket
     const s = dgram.createSocket({
         type: 'udp4',
         reuseAddr: true,
     });
 
-    if (port && address) {
-        s.bind(port, address, () => { s.setBroadcast(true); });
-    } else {
-        s.bind(() => { s.setBroadcast(true); });
-    }
+    s.on('error', (err) => {
+        console.error('UDP Socket error:', err);
+    });
 
-    // Keep reference
+    await bindSocket(s, bindAddress, port, enableBroadcast);
+
     sockets[socketId] = s;
     return socketId;
 };
 
 
-export const udpSocketClose = (socketId) => {
-    if (!sockets[socketId]) return;
+export const udpSocketClose = async (socketId) => {
+    const socket = getSocket(socketId);
+    if (!socket) return;
+    delete sockets[socketId];
     try {
-        sockets[socketId].close();
-        delete sockets[socketId];
+        await new Promise((resolve) => {
+            socket.close(() => resolve());
+        });
     } catch (error) {
         console.error(`UDP close socket error: ${error.message}`);
     }
@@ -45,23 +76,32 @@ export const udpSocketClose = (socketId) => {
 export const udpMessageSend = (
     socketId, address, port, message, onError
 ) => {
-    if (!sockets[socketId]) return;
-    sockets[socketId].send(
-        message, 0, message.length, port, address, (error) => {
-            if (!error) return;
-            console.error(`UDP message error: ${error}`);
-            if (onError) onError(error, socketId);
-        }
-    );
+    const socket = getSocket(socketId);
+    if (!socket) return;
+
+    const doOnError = (error) => {
+        if (!error) return;
+        const bound = socket.address?.();
+        console.error(`UDP message error: ${error}`, bound ? `(bound ${bound.address}:${bound.port})` : '');
+        if (onError) onError(error, socketId);
+    };
+
+    try {
+        socket.send(
+            message, 0, message.length, port, address, doOnError
+        );
+    } catch (error) {
+        doOnError(error);
+    }
 };
 
 
 export const onUDPMessageReceived = (onMessageReceived, socketId) => {
-    if (!sockets[socketId]) return () => {};
-    const socket = sockets[socketId];
+    const socket = getSocket(socketId);
+    if (!socket) return () => {};
 
     const onReceive = (buffer, { address, port }) => {
-        if (!sockets[socketId]) return;
+        if (!getSocket(socketId)) return;
         onMessageReceived(buffer, address, port);
     };
 

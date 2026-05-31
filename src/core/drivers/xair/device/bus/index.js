@@ -1,5 +1,5 @@
 // Requirements
-import { options } from './options.js';
+import { optionsForModel } from './options.js';
 import { name } from './name.js';
 import { color } from './color.js';
 import { icon } from './icon.js';
@@ -29,7 +29,7 @@ export const bus = ({
     read, get, set, subscribe, model,
 }) => ({
     has: (c) => { c(true); },
-    options,
+    options: optionsForModel(model),
     name: name({ read, get, set }),
     color: color({ read, get, set }),
     icon: icon({ read, get, set }),

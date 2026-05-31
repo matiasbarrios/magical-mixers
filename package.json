@@ -1,6 +1,6 @@
 {
   "name": "magical-mixers",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "An open-source engine for communicating with digital mixers with nodejs.",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -18,8 +18,8 @@
     "x18-mixer": "./bin/x18-mixer.mjs"
   },
   "scripts": {
-    "build-mjs": "esbuild src/index.js --bundle --platform=node --format=esm --outfile=dist/index.mjs --external:buffer --external:d3-scale --external:isomorphic-dompurify --external:netmask --external:dgram --external:os",
-    "build-cjs": "esbuild src/index.js --bundle --platform=node --format=cjs --outfile=dist/index.cjs --external:buffer --external:d3-scale --external:isomorphic-dompurify --external:netmask --external:dgram --external:os",
+    "build-mjs": "esbuild src/index.js --bundle --platform=node --format=esm --outfile=dist/index.mjs --external:buffer --external:netmask --external:dgram --external:os",
+    "build-cjs": "esbuild src/index.js --bundle --platform=node --format=cjs --outfile=dist/index.cjs --external:buffer --external:netmask --external:dgram --external:os",
     "build": "npm run build-mjs && npm run build-cjs",
     "x18": "npx nodemon ./src/virtual-device/x18/run.js",
     "lint": "eslint ."
@@ -41,8 +41,6 @@
   "homepage": "https://github.com/matiasbarrios/magical-mixers#readme",
   "dependencies": {
     "buffer": "^6.0.3",
-    "d3-scale": "^4.0.2",
-    "isomorphic-dompurify": "^2.25.0",
     "netmask": "^2.0.2"
   },
   "devDependencies": {

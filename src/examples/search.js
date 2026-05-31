@@ -37,7 +37,7 @@ const main = async () => {
     console.log(`Searching for devices`);
     initialize();
     search = searchNew();
-    await search.start(null, null, true);
+    await search.start(null, null);
     search.onUpdate(onUpdate);
 };
 

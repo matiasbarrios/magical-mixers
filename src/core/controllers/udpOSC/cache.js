@@ -7,6 +7,8 @@ const FETCH_RETRY_DELAY_MIN = 500;
 const FETCH_RETRY_DELAY_MAX = 600;
 const FETCH_RETRY_ATTEMPTS_MAXIMUM = 2;
 
+const CACHE_MAX_ENTRIES_DEFAULT = 512;
+
 
 // Internal
 const ttlGetRandom = () => Math.floor(Math.random()
@@ -27,17 +29,66 @@ const retryClear = (c) => {
 };
 
 
+const entryAge = c => c.when ?? c.createdAt ?? 0;
+
+
 // Exported
-export const cacheNew = () => {
+export const cacheNew = ({ maxEntries = CACHE_MAX_ENTRIES_DEFAULT, onEvict } = {}) => {
     const n = {};
 
 
     n._cache = {};
+    n._keepFreshInterval = null;
+    n._maxEntries = maxEntries;
+    n._onEvict = onEvict;
+
+
+    n._oldestFrozenKey = () => {
+        let oldestKey = null;
+        let oldestTime = Infinity;
+        Object.keys(n._cache).forEach((key) => {
+            const c = n._cache[key];
+            if (!c.frozen) return;
+            const t = entryAge(c);
+            if (t < oldestTime) {
+                oldestTime = t;
+                oldestKey = key;
+            }
+        });
+        return oldestKey;
+    };
+
+
+    n._entryRemove = (key) => {
+        const c = n._cache[key];
+        if (!c) return;
+        retryClear(c);
+        delete n._cache[key];
+        if (n._onEvict) n._onEvict(key, c);
+    };
+
+
+    n._enforceCap = () => {
+        while (Object.keys(n._cache).length >= n._maxEntries) {
+            const victim = n._oldestFrozenKey();
+            if (!victim) break;
+            n._entryRemove(victim);
+        }
+    };
 
 
     n._entryGet = (key) => {
-        if (!n._cache[key]) n._cache[key] = {};
+        if (!n._cache[key]) {
+            n._enforceCap();
+            n._cache[key] = { createdAt: Date.now() };
+        }
         return n._cache[key];
+    };
+
+
+    n.entryBindAddress = (key, address) => {
+        const c = n._entryGet(key);
+        if (!c.oscAddress) c.oscAddress = address;
     };
 
 
@@ -98,8 +149,10 @@ export const cacheNew = () => {
 
 
     n.entryFreeze = (key) => {
-        const c = n._entryGet(key);
+        const c = n._cache[key];
+        if (!c) return;
         c.frozen = true;
+        n._enforceCap();
     };
 
 
@@ -109,9 +162,10 @@ export const cacheNew = () => {
     };
 
 
-    n.refetch = () => {
+    n.refetch = ({ activeOnly = true } = {}) => {
         Object.keys(n._cache).forEach((key) => {
             const c = n._cache[key];
+            if (activeOnly && c.frozen) return;
             delete c.value;
             delete c.when;
             delete c.refreshIn;
@@ -121,9 +175,18 @@ export const cacheNew = () => {
     };
 
 
+    n.purgeFrozen = () => {
+        Object.keys(n._cache).forEach((key) => {
+            if (!n._cache[key]?.frozen) return;
+            n._entryRemove(key);
+        });
+    };
+
+
     n.clearAll = () => {
         Object.keys(n._cache).forEach((key) => {
             const c = n._cache[key];
+            retryClear(c);
             delete c.value;
             delete c.when;
             delete c.refreshIn;
@@ -132,7 +195,8 @@ export const cacheNew = () => {
 
 
     n.keepFresh = () => {
-        setInterval(() => {
+        if (n._keepFreshInterval) return;
+        n._keepFreshInterval = setInterval(() => {
             Object.keys(n._cache).forEach((key) => {
                 const c = n._cache[key];
                 if (c.trying || c.frozen || c.stopKeepingFresh
@@ -144,6 +208,17 @@ export const cacheNew = () => {
                 n.valueFetch(key, c.howToFetch);
             });
         }, VALUE_TTL_CHECK_EVERY);
+    };
+
+
+    n.dispose = () => {
+        if (n._keepFreshInterval) {
+            clearInterval(n._keepFreshInterval);
+            n._keepFreshInterval = null;
+        }
+        Object.keys(n._cache).forEach((key) => {
+            retryClear(n._cache[key]);
+        });
     };
 
 

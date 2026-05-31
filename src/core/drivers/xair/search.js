@@ -1,6 +1,6 @@
 // Requirements
+import { getLANInterfaces } from '../../helpers/lan.js';
 import { udpOSCSearchNew } from '../../controllers/udpOSC/index.js';
-import { getLANBroadcastAddress } from '../../helpers/lan.js';
 import { xAirDeviceNew } from './device/index.js';
 import { modelBrand, modelIsSupported } from './model.js';
 
@@ -17,15 +17,12 @@ export const xAirSearchNew = (onFound) => {
 
     // Internal
     n._searchInterval = null;
+    n._manualTarget = null;
 
 
-    n._xAirOnDeviceFound = debugMode => (ip, port, ...values) => {
+    n._makeOnDeviceFound = (localAddress, searchSocket) => (ip, port, ...values) => {
         // Only process messages with expected number of parameters
         // This avoids processing our own broadcast messages
-        if (debugMode) {
-            console.log(`XAir | Responded to /xinfo | ${ip}:${port} | `, JSON.stringify(values));
-        }
-
         if (values?.length !== 4) return;
 
         const [, name, model, firmware] = values;
@@ -33,12 +30,19 @@ export const xAirSearchNew = (onFound) => {
         // Only process our model
         if (!modelIsSupported(model)) return;
 
+        if (n._manualTarget) {
+            const targetPort = n._manualTarget.port || PORT;
+            if (ip !== n._manualTarget.ip || Number(port) !== Number(targetPort)) return;
+        }
+
         const brand = modelBrand(model);
 
         const data = {
-            deviceId: `${brand}_${model}_${firmware}`,
+            deviceId: `${ip}:${port}`,
             ip,
             port,
+            localAddress,
+            searchSocket,
             name: name || `${brand} ${model}`,
             model,
             brand,
@@ -57,41 +61,30 @@ export const xAirSearchNew = (onFound) => {
 
 
     // Exported
-    n.searchStart = async (ip, port, debugMode = false) => {
+    n.searchStart = async (ip, port) => {
         // If already searching, stop , just in case
         await n.searchStop();
 
         // For each interface
         n._udpOSCForSearching = [];
         let nextI = 0;
-        const setBroadcast = async (ipFinal, portFinal) => {
-            // Create
-            n._udpOSCForSearching[nextI] = udpOSCSearchNew(ipFinal, portFinal);
-            // Open
-            await n._udpOSCForSearching[nextI].open();
-            // Listen for results
-            n._udpOSCForSearching[nextI].addListener('/xinfo', n._xAirOnDeviceFound(debugMode));
-            if (debugMode) {
-                console.log(`XAir | Searching on interface ${ipFinal}:${portFinal}`);
-            }
+        const addSearchSocket = async (destAddress, portFinal, localAddress) => {
+            const searchSocket = udpOSCSearchNew(destAddress, portFinal, localAddress);
+            n._udpOSCForSearching[nextI] = searchSocket;
+            await searchSocket.open();
+            searchSocket.addListener('/xinfo', n._makeOnDeviceFound(localAddress, searchSocket));
             nextI += 1;
         };
 
-        // Depending on the parameters, what we set
-        if (ip) {
-            await setBroadcast(ip, port || PORT);
-        } else {
-            const broadcastAddress = getLANBroadcastAddress();
-            if (typeof broadcastAddress === 'string') {
-                await setBroadcast(broadcastAddress, port || PORT);
-            } else if (Array.isArray(broadcastAddress)) {
-                const doIt = async (i = 0) => {
-                    if (i === broadcastAddress.length) return;
-                    await setBroadcast(broadcastAddress[i], port || PORT);
-                    await doIt(i + 1);
-                };
-                await doIt();
-            }
+        const interfaces = getLANInterfaces();
+        if (Array.isArray(interfaces)) {
+            const doIt = async (i = 0) => {
+                if (i === interfaces.length) return;
+                const { broadcastAddress, localAddress } = interfaces[i];
+                await addSearchSocket(broadcastAddress, port || PORT, localAddress);
+                await doIt(i + 1);
+            };
+            await doIt();
         }
 
         // Start by sending message, do it periodically
@@ -113,13 +106,16 @@ export const xAirSearchNew = (onFound) => {
         };
         await doIt();
 
+        n._manualTarget = null;
+
         if (!n._searchInterval) return;
         n._searchIntervalClear();
     };
 
 
     n.searchInIPPortStart = async (ip, port) => {
-        await n.searchStart(ip, port);
+        n._manualTarget = { ip, port: Number(port) || PORT };
+        await n.searchStart(null, port);
     };
 
 

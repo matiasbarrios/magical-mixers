@@ -1,5 +1,5 @@
 // Requirements
-import { scaleLinear } from 'd3-scale';
+import { scaleLinear } from '../../../../helpers/scale.js';
 import { ONE, xAirSubscriptionBuild } from '../../shared.js';
 import { inputIsPreamp, inputOsc, inputGet } from './options.js';
 
