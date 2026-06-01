@@ -38,7 +38,7 @@ export const xAirSearchNew = (onFound) => {
         const brand = modelBrand(model);
 
         const data = {
-            deviceId: `${ip}:${port}`,
+            deviceId: `${name}_${brand}_${model}`,
             ip,
             port,
             localAddress,
