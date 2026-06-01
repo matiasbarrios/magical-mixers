@@ -50,13 +50,13 @@ export const deviceNew = (data, driver) => {
     };
 
 
-    n._scheduleReconnectRefetch = () => {
+    n._scheduleCacheRefetch = () => {
         n._clearReconnectRefetch();
         n._reconnectRefetchTimer = setTimeout(async () => {
             n._reconnectRefetchTimer = null;
-            if (!n._connected || !n._online || n._halted || !n.features?.cacheRefetch) return;
+            if (!n._connected || n._halted || !n.features?.cacheRefetch) return;
             if (n.features.sendQueueDrained) await n.features.sendQueueDrained();
-            if (!n._connected || !n._online || n._halted) return;
+            if (!n._connected || n._halted) return;
             n.features.cacheRefetch({ purgeFrozen: true });
         }, RECONNECT_REFETCH_DELAY);
     };
@@ -73,7 +73,7 @@ export const deviceNew = (data, driver) => {
         if (n._connected && changed) {
             if (isOnline) {
                 // Defer refetch until the link is stable and keepalive traffic has drained.
-                n._scheduleReconnectRefetch();
+                n._scheduleCacheRefetch();
             } else {
                 n._clearReconnectRefetch();
             }
@@ -182,6 +182,10 @@ export const deviceNew = (data, driver) => {
 
         // Trigger the update online status, give some milliseconds to get the answer
         setTimeout(n._checkOnline, RESUME_CHECK_ONLINE_DELAY);
+
+        // While halted, inbound OSC is ignored — React still shows stale cache/UI.
+        // Refetch on resume even if _online never flapped (short background).
+        n._scheduleCacheRefetch();
     };
 
 
