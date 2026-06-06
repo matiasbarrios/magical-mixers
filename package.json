@@ -15,7 +15,7 @@
     "bin/x18-mixer.mjs"
   ],
   "bin": {
-    "x18-mixer": "./bin/x18-mixer.mjs"
+    "x18-mixer": "bin/x18-mixer.mjs"
   },
   "scripts": {
     "build-mjs": "esbuild src/index.js --bundle --platform=node --format=esm --outfile=dist/index.mjs --external:buffer --external:netmask --external:dgram --external:os",
