@@ -73,38 +73,55 @@ const idGet = (model, read, get) => (busId, callback) => {
 };
 
 
-const idSet = (model, set) => (busId, id) => {
+const idSet = (model, set, setBatch) => (busId, id) => {
     const bus = busGet(busId);
     const idToXAirId = inputIdToXAirId(model, busId);
     const mIs18 = modelIs18(model);
 
+    const writes = [];
+    const queue = (address, value, translateValue) => {
+        writes.push({ address, value, translateValue });
+    };
+    const flush = () => {
+        if (!writes.length) return;
+        if (writes.length === 1 || !setBatch) {
+            writes.forEach(({ address, value, translateValue }) => {
+                set(address, value, translateValue);
+            });
+        } else {
+            setBatch(writes);
+        }
+    };
+
     if (mIs18 && bus.type === 'effect') {
         if (id === inputIdDefaultForBus(model, busId)) {
-            set(`${osc(busId)}preamp/rtnsw`, false, booleanToBinary);
+            queue(`${osc(busId)}preamp/rtnsw`, false, booleanToBinary);
         } else {
-            set(`${osc(busId)}preamp/rtnsw`, true, booleanToBinary);
-            set(`${osc(busId)}config/rtnsrc`, id, idToXAirId);
+            queue(`${osc(busId)}preamp/rtnsw`, true, booleanToBinary);
+            queue(`${osc(busId)}config/rtnsrc`, id, idToXAirId);
         }
     } else if (mIs18 && bus.type === 'line') {
         if (id === inputIdDefaultForBus(model, busId)) {
-            set(`${osc(busId)}preamp/rtnsw`, false, booleanToBinary);
+            queue(`${osc(busId)}preamp/rtnsw`, false, booleanToBinary);
         } else {
-            set(`${osc(busId)}preamp/rtnsw`, true, booleanToBinary);
-            set(`${osc(busId)}config/rtnsrc`, id, idToXAirId);
+            queue(`${osc(busId)}preamp/rtnsw`, true, booleanToBinary);
+            queue(`${osc(busId)}config/rtnsrc`, id, idToXAirId);
         }
     } else if (bus.type === 'channel') {
         if (mIs18) {
             if (inputGet(id).type === 'usb') {
-                set(`${osc(busId)}preamp/rtnsw`, true, booleanToBinary);
-                set(`${osc(busId)}config/rtnsrc`, id, idToXAirId);
+                queue(`${osc(busId)}preamp/rtnsw`, true, booleanToBinary);
+                queue(`${osc(busId)}config/rtnsrc`, id, idToXAirId);
             } else {
-                set(`${osc(busId)}preamp/rtnsw`, false, booleanToBinary);
-                set(`${osc(busId)}config/insrc`, id, idToXAirId);
+                queue(`${osc(busId)}preamp/rtnsw`, false, booleanToBinary);
+                queue(`${osc(busId)}config/insrc`, id, idToXAirId);
             }
         } else {
-            set(`${osc(busId)}config/insrc`, id, idToXAirId);
+            queue(`${osc(busId)}config/insrc`, id, idToXAirId);
         }
     }
+
+    flush();
 };
 
 
@@ -216,14 +233,14 @@ export {
 
 
 export const input = ({
-    read, get, set, subscribe, model,
+    read, get, set, setBatch, subscribe, model,
 }) => ({
     has: (busId, c) => { c(inputHas(model, busId)); },
     id: {
         has: idHas(model),
         read: idRead(model, read),
         get: idGet(model, read, get),
-        set: idSet(model, set),
+        set: idSet(model, set, setBatch),
         options: inputOptionsForBus(model),
         defaultOption: idDefaultOption(model),
     },

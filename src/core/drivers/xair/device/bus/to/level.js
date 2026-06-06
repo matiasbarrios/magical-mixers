@@ -2,12 +2,16 @@
 import {
     DB_MAXIMUM, DB_MINIMUM, dbToDecimal, decimalToDb, levelRead, levelGet, levelSet,
 } from '../level.js';
+import { readOrGetOnce } from '../../../../../helpers/readOrGetOnce.js';
 import {
+    isTapPostLevel,
     monitorChannelLineEffectTapGet, monitorChannelLineEffectTapIsPostLevel,
+    monitorChannelLineEffectTapRead,
     monitorSecondaryTapGet, monitorSecondaryTapIsPostLevel,
+    monitorSecondaryTapRead,
 } from '../monitor.js';
 import { busGet, busOsc } from '../options.js';
-import { toTapIsSameLevel, toTapGet } from './tap.js';
+import { toTapIsSameLevel, toTapGet, toTapRead } from './tap.js';
 
 
 // Constants
@@ -301,7 +305,7 @@ const toLevelIsBusLevel = (read, get) => ({
 });
 
 
-const toLevelSet = (read, set) => (busIdFrom, busIdTo, value) => {
+const toLevelSet = (read, get, set) => (busIdFrom, busIdTo, value) => {
     const from = busGet(busIdFrom);
     const to = busGet(busIdTo);
 
@@ -310,8 +314,23 @@ const toLevelSet = (read, set) => (busIdFrom, busIdTo, value) => {
     const setToLevel = () => set(osc(busIdFrom, busIdTo), value, dbToDecimal);
 
     const setToSecondaryLevel = () => {
-        if (value <= DB_MINIMUM || !toTapIsSameLevel(read, busIdFrom, busIdTo)) setToLevel();
-        else setFromLevel();
+        readOrGetOnce(toTapRead(read)(busIdFrom, busIdTo),
+            c => toTapGet(read, get)(busIdFrom, busIdTo, c),
+            (tap) => {
+                if (value <= DB_MINIMUM || !toTapIsSameLevel(read, busIdFrom, busIdTo, tap)) {
+                    setToLevel();
+                } else {
+                    setFromLevel();
+                }
+            });
+    };
+
+    const setFromLevelIfMonitorPostLevel = (readTap, getTap) => {
+        readOrGetOnce(readTap(),
+            c => getTap(c),
+            (tap) => {
+                if (isTapPostLevel(tap)) setFromLevel();
+            });
     };
 
     if (from.type === 'main') {
@@ -320,13 +339,15 @@ const toLevelSet = (read, set) => (busIdFrom, busIdTo, value) => {
     if (from.type === 'secondary') {
         if (to.type === 'main') setFromLevel();
         if (to.type === 'monitor') {
-            if (monitorSecondaryTapIsPostLevel(read, busIdTo)) setFromLevel();
+            setFromLevelIfMonitorPostLevel(() => monitorSecondaryTapRead(read)(busIdTo),
+                c => monitorSecondaryTapGet(get)(busIdTo, c));
         }
     }
     if (from.type === 'effect') {
         if (to.type === 'main') setToLevel();
         if (to.type === 'monitor') {
-            if (monitorChannelLineEffectTapIsPostLevel(read, busIdTo)) setFromLevel();
+            setFromLevelIfMonitorPostLevel(() => monitorChannelLineEffectTapRead(read)(busIdTo),
+                c => monitorChannelLineEffectTapGet(get)(busIdTo, c));
         }
         if (to.type === 'secondary') setToSecondaryLevel();
         if (to.type === 'effect') setToLevel();
@@ -334,7 +355,8 @@ const toLevelSet = (read, set) => (busIdFrom, busIdTo, value) => {
     if (from.type === 'line') {
         if (to.type === 'main') setToLevel();
         if (to.type === 'monitor') {
-            if (monitorChannelLineEffectTapIsPostLevel(read, busIdTo)) setFromLevel();
+            setFromLevelIfMonitorPostLevel(() => monitorChannelLineEffectTapRead(read)(busIdTo),
+                c => monitorChannelLineEffectTapGet(get)(busIdTo, c));
         }
         if (to.type === 'secondary') setToSecondaryLevel();
         if (to.type === 'effect') setToLevel();
@@ -342,7 +364,8 @@ const toLevelSet = (read, set) => (busIdFrom, busIdTo, value) => {
     if (from.type === 'channel') {
         if (to.type === 'main') setToLevel();
         if (to.type === 'monitor') {
-            if (monitorChannelLineEffectTapIsPostLevel(read, busIdTo)) setFromLevel();
+            setFromLevelIfMonitorPostLevel(() => monitorChannelLineEffectTapRead(read)(busIdTo),
+                c => monitorChannelLineEffectTapGet(get)(busIdTo, c));
         }
         if (to.type === 'secondary') setToSecondaryLevel();
         if (to.type === 'effect') setToLevel();
@@ -361,7 +384,7 @@ export const level = ({ read, get, set }) => ({
     has: toLevelHas(read, get),
     read: toLevelRead(read),
     get: toLevelGet(read, get),
-    set: toLevelSet(read, set),
+    set: toLevelSet(read, get, set),
     isBusLevel: toLevelIsBusLevel(read, get),
     minimum: DB_MINIMUM,
     maximum: DB_MAXIMUM,

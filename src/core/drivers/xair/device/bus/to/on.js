@@ -1,7 +1,10 @@
 // Requirements
+import { readOrGetOnce } from '../../../../../helpers/readOrGetOnce.js';
 import { binaryToBoolean, booleanToBinary } from '../../../../../helpers/values.js';
 import { busGet, busOsc } from '../options.js';
-import { toTapIsSameLevel, toTapGet } from './tap.js';
+import { stereoLinkGet, stereoLinkPair, stereoLinkRead, stereoLinkSide } from '../stereoLink.js';
+import { toPanHasOnce, toPanSet } from './pan.js';
+import { toTapGet, toTapRead, toTapIsSameLevel } from './tap.js';
 
 
 // Constants
@@ -254,7 +257,7 @@ const onGet = (read, get) => (busIdFrom, busIdTo, callback) => {
 };
 
 
-const onSet = (read, set) => (busIdFrom, busIdTo, value) => {
+const onSet = (read, get, set) => (busIdFrom, busIdTo, value) => {
     const from = busGet(busIdFrom);
     const to = busGet(busIdTo);
 
@@ -265,16 +268,46 @@ const onSet = (read, set) => (busIdFrom, busIdTo, value) => {
             set(groupOnOsc(busIdFrom, busIdTo), value, booleanToBinary);
             return;
         }
-        if (!toTapIsSameLevel(read, busIdFrom, busIdTo)) return;
-        set(groupOnOsc(busIdFrom, busIdTo), value, booleanToBinary);
+        readOrGetOnce(toTapRead(read)(busIdFrom, busIdTo),
+            c => toTapGet(read, get)(busIdFrom, busIdTo, c),
+            (tap) => {
+                if (!toTapIsSameLevel(read, busIdFrom, busIdTo, tap)) return;
+                set(groupOnOsc(busIdFrom, busIdTo), value, booleanToBinary);
+            });
     };
 
     if (from.type === 'main') {
         if (to.type === 'monitor') setToOn();
     }
     if (from.type === 'secondary') {
-        if (to.type === 'main') setToOn();
-        if (to.type === 'monitor') setToOn();
+        const setPairOnIfLinked = () => {
+            readOrGetOnce(stereoLinkRead(read)(busIdFrom),
+                c => stereoLinkGet(get)(busIdFrom, c),
+                (linked) => {
+                    if (!linked) return;
+                    const pairId = stereoLinkPair(busIdFrom);
+                    set(osc(pairId, busIdTo), value, booleanToBinary);
+                    if (value) {
+                        const setPairPan = (busId) => {
+                            const pan = stereoLinkSide(busId) === 'L' ? -100 : 100;
+                            toPanHasOnce(read, get)(busId, busIdTo, (has) => {
+                                if (!has) return;
+                                toPanSet(read, get, set)(busId, busIdTo, pan);
+                            });
+                        };
+                        setPairPan(busIdFrom);
+                        setPairPan(pairId);
+                    }
+                });
+        };
+        if (to.type === 'main') {
+            setToOn();
+            setPairOnIfLinked();
+        }
+        if (to.type === 'monitor') {
+            setToOn();
+            setPairOnIfLinked();
+        }
     }
     if (from.type === 'effect') {
         if (to.type === 'main') setToOn();
@@ -298,9 +331,14 @@ const onSet = (read, set) => (busIdFrom, busIdTo, value) => {
 
 
 // Exported
+export const toOnEnableGroupOn = set => (busIdFrom, busIdTo) => {
+    set(groupOnOsc(busIdFrom, busIdTo), true, booleanToBinary);
+};
+
+
 export const on = ({ read, get, set }) => ({
     has: onHas(read, get),
     read: onRead(read),
     get: onGet(read, get),
-    set: onSet(read, set),
+    set: onSet(read, get, set),
 });

@@ -1,5 +1,6 @@
 // Requirements
 import { busGet, busOsc } from '../options.js';
+import { toOnEnableGroupOn } from './on.js';
 
 
 // Constants
@@ -31,6 +32,8 @@ const tapToSecondaryEffectOptions = [
     { id: 4, name: 'Post level' },
     { id: 5, name: 'Same level' },
 ];
+
+const toTapSameLevelId = tapToSecondaryEffectOptions.find(o => o.name === 'Same level').id;
 
 
 // Internal
@@ -149,17 +152,24 @@ const toTapSet = set => (busIdFrom, busIdTo, value) => {
 
     const setToTap = () => set(tapOsc(busIdFrom, busIdTo), value);
 
+    const setToTapWithGroupOn = () => {
+        setToTap();
+        if (value === toTapSameLevelId) {
+            toOnEnableGroupOn(set)(busIdFrom, busIdTo);
+        }
+    };
+
     if (from.type === 'effect') {
-        if (to.type === 'secondary') setToTap();
-        if (to.type === 'effect') setToTap();
+        if (to.type === 'secondary') setToTapWithGroupOn();
+        if (to.type === 'effect') setToTapWithGroupOn();
     }
     if (from.type === 'line') {
-        if (to.type === 'secondary') setToTap();
-        if (to.type === 'effect') setToTap();
+        if (to.type === 'secondary') setToTapWithGroupOn();
+        if (to.type === 'effect') setToTapWithGroupOn();
     }
     if (from.type === 'channel') {
-        if (to.type === 'secondary') setToTap();
-        if (to.type === 'effect') setToTap();
+        if (to.type === 'secondary') setToTapWithGroupOn();
+        if (to.type === 'effect') setToTapWithGroupOn();
     }
 
     return undefined;
@@ -221,7 +231,7 @@ const toTapDefaultOption = (busIdFrom, busIdTo) => {
 
 
 // Exported
-export { toTapGet };
+export { toTapGet, toTapRead };
 
 
 export const toTapIsInput = (read, busIdFrom, busIdTo) => {
@@ -253,10 +263,11 @@ export const toTapIsPostLevel = (read, busIdFrom,
     busIdTo) => read(tapOsc(busIdFrom, busIdTo)) === 4;
 
 
-export const toTapIsSameLevel = (read, busIdFrom, busIdTo) => {
+export const toTapIsSameLevel = (read, busIdFrom, busIdTo, tapValue) => {
     const to = busGet(busIdTo);
     if (to.type === 'monitor') return false;
-    return read(tapOsc(busIdFrom, busIdTo)) === 5;
+    const tap = tapValue !== undefined ? tapValue : read(tapOsc(busIdFrom, busIdTo));
+    return tap === toTapSameLevelId;
 };
 
 

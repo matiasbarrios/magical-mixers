@@ -80,7 +80,8 @@ export const xAirDeviceNew = (data) => {
         }
         n._keepAliveListenerRemove = n._udpOSC.addListener('/status', onKeepAlive);
         const {
-            cacheRefetch, cacheClear, read, get, set, subscribe, sendQueueDrained,
+            cacheRefetch, cacheClear, read, get, set, setBatch, subscribe,
+            sendQueueDrained, sendQueueOutstanding,
         } = n._udpOSC;
 
         // Features
@@ -88,15 +89,16 @@ export const xAirDeviceNew = (data) => {
             cacheRefetch,
             cacheClear,
             sendQueueDrained,
+            sendQueueOutstanding,
             automix: automix({ read, get, set }),
             bus: bus({
-                read, get, set, subscribe, model,
+                read, get, set, setBatch, subscribe, model,
             }),
-            configuration: configuration({ read, get, set }),
+            configuration: configuration({ read, get, set, setBatch }),
             dca: dca({
                 read, get, set, subscribe,
             }),
-            fx: fx({ read, get, set }),
+            fx: fx({ read, get, set, setBatch }),
             input: input({
                 read, get, set, subscribe, model,
             }),

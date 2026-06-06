@@ -1,12 +1,16 @@
 // Requirements
+import { readOrGetOnce } from '../../../../../helpers/readOrGetOnce.js';
 import { decimalToHundredRange, hundredRangeToDecimal } from '../../../../../helpers/values.js';
 import { busGet, busOsc } from '../options.js';
 import { busIsStereoLinked, stereoLinkGet, stereoLinkRead } from '../stereoLink.js';
 import { panRead, panGet, panSet } from '../pan.js';
 import { ONE } from '../../../shared.js';
 import {
+    isTapPostLevel,
     monitorChannelLineEffectTapGet, monitorChannelLineEffectTapIsPostLevel,
+    monitorChannelLineEffectTapRead,
     monitorSecondaryTapGet, monitorSecondaryTapIsPostLevel,
+    monitorSecondaryTapRead,
 } from '../monitor.js';
 
 
@@ -119,6 +123,79 @@ const toPanHas = (read, get) => (busIdFrom, busIdTo, callback) => {
     }
 
     return unlistener;
+};
+
+
+const toPanHasOnce = (read, get) => (busIdFrom, busIdTo, callback) => {
+    const from = busGet(busIdFrom);
+    const to = busGet(busIdTo);
+
+    const whenMonitorSecondaryTap = () => {
+        readOrGetOnce(monitorSecondaryTapRead(read)(busIdTo),
+            c => monitorSecondaryTapGet(get)(busIdTo, c),
+            tap => callback(isTapPostLevel(tap)));
+    };
+
+    const whenMonitorChannelLineEffectTap = () => {
+        readOrGetOnce(monitorChannelLineEffectTapRead(read)(busIdTo),
+            c => monitorChannelLineEffectTapGet(get)(busIdTo, c),
+            tap => callback(isTapPostLevel(tap)));
+    };
+
+    const whenSecondaryIsStereoLinked = () => {
+        readOrGetOnce(stereoLinkRead(read)(busIdTo),
+            c => stereoLinkGet(get)(busIdTo, c),
+            linked => callback(!!linked));
+    };
+
+    if (from.type === 'main') {
+        if (to.type === 'main') callback(false);
+        if (to.type === 'monitor') callback(true);
+        if (to.type === 'secondary') callback(false);
+        if (to.type === 'effect') callback(false);
+        if (to.type === 'line') callback(false);
+        if (to.type === 'channel') callback(false);
+    }
+    if (from.type === 'monitor') {
+        if (to.type === 'main') callback(false);
+        if (to.type === 'monitor') callback(false);
+        if (to.type === 'secondary') callback(false);
+        if (to.type === 'effect') callback(false);
+        if (to.type === 'line') callback(false);
+        if (to.type === 'channel') callback(false);
+    }
+    if (from.type === 'secondary') {
+        if (to.type === 'main') callback(true);
+        if (to.type === 'monitor') whenMonitorSecondaryTap();
+        if (to.type === 'secondary') callback(false);
+        if (to.type === 'effect') callback(false);
+        if (to.type === 'line') callback(false);
+        if (to.type === 'channel') callback(false);
+    }
+    if (from.type === 'effect') {
+        if (to.type === 'main') callback(true);
+        if (to.type === 'monitor') whenMonitorChannelLineEffectTap();
+        if (to.type === 'secondary') whenSecondaryIsStereoLinked();
+        if (to.type === 'effect') callback(false);
+        if (to.type === 'line') callback(false);
+        if (to.type === 'channel') callback(false);
+    }
+    if (from.type === 'line') {
+        if (to.type === 'main') callback(true);
+        if (to.type === 'monitor') whenMonitorChannelLineEffectTap();
+        if (to.type === 'secondary') whenSecondaryIsStereoLinked();
+        if (to.type === 'effect') callback(false);
+        if (to.type === 'line') callback(false);
+        if (to.type === 'channel') callback(false);
+    }
+    if (from.type === 'channel') {
+        if (to.type === 'main') callback(true);
+        if (to.type === 'monitor') whenMonitorChannelLineEffectTap();
+        if (to.type === 'secondary') whenSecondaryIsStereoLinked();
+        if (to.type === 'effect') callback(false);
+        if (to.type === 'line') callback(false);
+        if (to.type === 'channel') callback(false);
+    }
 };
 
 
@@ -235,19 +312,25 @@ const toPanIsBusPan = (read, get) => ({
 });
 
 
-const toPanSet = (read, set) => (busIdFrom, busIdTo, value) => {
+const toPanSet = (read, get, set) => (busIdFrom, busIdTo, value) => {
     const from = busGet(busIdFrom);
     const to = busGet(busIdTo);
 
     const setFromPan = () => panSet(set)(busIdFrom, value);
 
     const setToSecondaryStereoLinked = () => {
-        const stereoLinked = stereoLinkRead(read)(busIdTo);
-        if (!stereoLinked || to.number % 2 === 1) {
-            set(osc(busIdFrom, busIdTo), value, hundredRangeToDecimalXair);
-        } else if (busIdTo > 0) {
-            set(osc(busIdFrom, busIdTo - 1), value, hundredRangeToDecimalXair);
-        }
+        // Check whether the destination secondary bus is stereo-linked, once
+        readOrGetOnce(stereoLinkRead(read)(busIdTo),
+            c => stereoLinkGet(get)(busIdTo, c),
+            (linked) => {
+                // No link or odd bus (L channel): send pan goes to that bus
+                if (!linked || to.number % 2 === 1) {
+                    set(osc(busIdFrom, busIdTo), value, hundredRangeToDecimalXair);
+                // Linked and even bus (R channel): desk uses the pair's pan (previous odd bus)
+                } else if (busIdTo > 0) {
+                    set(osc(busIdFrom, busIdTo - 1), value, hundredRangeToDecimalXair);
+                }
+            });
     };
 
     if (from.type === 'main') {
@@ -280,7 +363,9 @@ export {
     MINIMUM as toPanMinimum,
     MAXIMUM as toPanMaximum,
     toPanHas,
+    toPanHasOnce,
     toPanGet,
+    toPanSet,
 };
 
 
@@ -288,7 +373,7 @@ export const pan = ({ read, get, set }) => ({
     has: toPanHas(read, get),
     read: toPanRead(read),
     get: toPanGet(read, get),
-    set: toPanSet(read, set),
+    set: toPanSet(read, get, set),
     isBusPan: toPanIsBusPan(read, get),
     minimum: MINIMUM,
     maximum: MAXIMUM,

@@ -25,19 +25,21 @@ const getIp = (read, get, osc) => (c) => {
 };
 
 
-const setIP = (set, osc) => (v) => {
+const setIP = (set, setBatch, osc) => (v) => {
     const parts = v.split('.');
     if (parts.length !== 4) return;
     if (!parts.every(p => parseInt(p, 10) >= 0 && parseInt(p, 10) <= 255)) return;
-    set(`/-prefs/is/${osc}/0`, parts[0]);
-    set(`/-prefs/is/${osc}/1`, parts[1]);
-    set(`/-prefs/is/${osc}/2`, parts[2]);
-    set(`/-prefs/is/${osc}/3`, parts[3]);
+    const writes = parts.map((part, i) => ({
+        address: `/-prefs/is/${osc}/${i}`,
+        value: part,
+    }));
+    if (setBatch) setBatch(writes);
+    else writes.forEach(({ address, value }) => set(address, value));
 };
 
 
 // Exported
-export const networkWifiClient = ({ read, get, set }) => ({
+export const networkWifiClient = ({ read, get, set, setBatch }) => ({
     ssid: {
         name: 'SSID',
         type: 'string',
@@ -94,7 +96,7 @@ export const networkWifiClient = ({ read, get, set }) => ({
         has: (c) => { c(true); },
         read: readIp(read, 'addr'),
         get: getIp(read, get, 'addr'),
-        set: setIP(set, 'addr'),
+        set: setIP(set, setBatch, 'addr'),
     },
     mask: {
         name: 'Subnet mask',
@@ -106,7 +108,7 @@ export const networkWifiClient = ({ read, get, set }) => ({
         has: (c) => { c(true); },
         read: readIp(read, 'mask'),
         get: getIp(read, get, 'mask'),
-        set: setIP(set, 'mask'),
+        set: setIP(set, setBatch, 'mask'),
     },
     gateway: {
         name: 'Gateway',
@@ -118,6 +120,6 @@ export const networkWifiClient = ({ read, get, set }) => ({
         has: (c) => { c(true); },
         read: readIp(read, 'gateway'),
         get: getIp(read, get, 'gateway'),
-        set: setIP(set, 'gateway'),
+        set: setIP(set, setBatch, 'gateway'),
     },
 });

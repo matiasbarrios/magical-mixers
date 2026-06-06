@@ -26,7 +26,7 @@ import { disabled } from './disabled.js';
 
 // Exported
 export const bus = ({
-    read, get, set, subscribe, model,
+    read, get, set, setBatch, subscribe, model,
 }) => ({
     has: (c) => { c(true); },
     options: optionsForModel(model),
@@ -43,7 +43,7 @@ export const bus = ({
     stereoLink: stereoLink({ read, get, set }),
     lowCut: lowCut({ read, get, set }),
     input: input({
-        read, get, set, subscribe, model,
+        read, get, set, setBatch, subscribe, model,
     }),
     equalizer: equalizer({
         read, get, set, subscribe, model,

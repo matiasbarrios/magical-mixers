@@ -70,5 +70,8 @@ export const sendQueueNew = (paceMs = DELAY_BETWEEN_MESSAGES) => {
         get pending() {
             return queue.length;
         },
+        get outstanding() {
+            return queue.length + (draining ? 1 : 0);
+        },
     };
 };

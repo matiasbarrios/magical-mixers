@@ -36,10 +36,10 @@ const typePrefix = {
 };
 
 
-const side = busId => (busGet(busId).number % 2 === 1 ? 'L' : 'R');
+const stereoLinkSide = busId => (busGet(busId).number % 2 === 1 ? 'L' : 'R');
 
 
-const pair = busId => (busGet(busId).number % 2 === 1 ? busId + 1 : busId - 1);
+const stereoLinkPair = busId => (busGet(busId).number % 2 === 1 ? busId + 1 : busId - 1);
 
 
 const osc = (busId) => {
@@ -61,7 +61,7 @@ const stereoLinkSet = set => (busId, v) => set(osc(busId), v, booleanToBinary);
 
 
 // Exported
-export { stereoLinkRead, stereoLinkGet };
+export { stereoLinkRead, stereoLinkGet, stereoLinkPair, stereoLinkSide };
 
 
 export const busIsStereoLinked = (read, busId) => !!read(osc(busId));
@@ -72,6 +72,6 @@ export const stereoLink = ({ read, get, set }) => ({
     read: stereoLinkRead(read),
     get: stereoLinkGet(get),
     set: stereoLinkSet(set),
-    side,
-    pair,
+    side: stereoLinkSide,
+    pair: stereoLinkPair,
 });

@@ -73,10 +73,11 @@ export const udpOSCControllerNew = (ip, port, bindAddress) => {
     n._capturedValues = {};
     n._sendQueue = sendQueueNew(DELAY_BETWEEN_MESSAGES);
     n._fetchSendNext = 0;
+    n._fetchPendingAddresses = new Set();
 
 
     // Internal
-    n._messageReceived = (message) => {
+    n._messageReceived = (message, { origin = 'network' } = {}) => {
         if (n._halted) return;
 
         const { address, values } = message;
@@ -85,10 +86,13 @@ export const udpOSCControllerNew = (ip, port, bindAddress) => {
 
         if (n._listeners[address]) {
             let v = values?.length ? values[0] : null;
-            // First, pass it through the listener
-            v = n._listeners[address].listener(v);
-            // Then call the callbacks
-            Object.values(n._listeners[address].callbacks).forEach(c => c(v));
+
+            if (origin === 'local' || !n._cache.valueRejectStaleInbound(address, v)) {
+                // First, pass it through the listener
+                v = n._listeners[address].listener(v);
+                // Then call the callbacks
+                Object.values(n._listeners[address].callbacks).forEach(c => c(v));
+            }
         }
 
         const s = n._subscriptions[address];
@@ -130,6 +134,7 @@ export const udpOSCControllerNew = (ip, port, bindAddress) => {
         n._listeners = {};
         n._cache.dispose();
         n._fetchSendNext = 0;
+        n._fetchPendingAddresses.clear();
         n._sendQueue.dispose();
     };
 
@@ -192,6 +197,7 @@ export const udpOSCControllerNew = (ip, port, bindAddress) => {
         n._listeners = {};
         n._cache.dispose();
         n._fetchSendNext = 0;
+        n._fetchPendingAddresses.clear();
         n._sendQueue.dispose();
         await udpSocketClose(socketIdToClose);
         n._socket = null;
@@ -203,9 +209,13 @@ export const udpOSCControllerNew = (ip, port, bindAddress) => {
     );
 
 
-    // Paced like pre-queue send(): schedules all fetches up front so reads can be in flight together.
+    // Paced like pre-queue send(): schedules reads ~5ms apart. One outstanding GET per OSC address
+    // (duplicate background/remount/keepFresh requests for the same path are dropped).
     n.sendFetch = (address, ...args) => {
         if (!n._canSend()) return undefined;
+        if (n._fetchPendingAddresses.has(address)) return undefined;
+
+        n._fetchPendingAddresses.add(address);
 
         const now = Date.now();
         if (n._fetchSendNext < now) n._fetchSendNext = now;
@@ -213,6 +223,7 @@ export const udpOSCControllerNew = (ip, port, bindAddress) => {
         const delay = n._fetchSendNext - now;
 
         setTimeout(() => {
+            n._fetchPendingAddresses.delete(address);
             if (!n._canSend()) return;
             n._doSend(address, ...args);
         }, delay);
@@ -248,16 +259,17 @@ export const udpOSCControllerNew = (ip, port, bindAddress) => {
         const listenerRemoval = n.addListener(address, onGotten, listener, cacheKey);
 
         n._cache.entryBindAddress(ck, address);
-        // Get from caché if available, or fetch it
         n._cache.entryUnfreeze(ck);
+        const fetchHow = (...args) => n.sendFetch(address, ...args);
         const value = n._cache.valueGet(ck);
         if (value !== undefined) {
+            // Stale-while-revalidate: show cache, then one background GET (does not clear cache).
             onGotten(value);
+            n._cache.valueFetch(ck, fetchHow, { background: true });
         } else {
-            n._cache.valueFetch(ck, (...args) => n.sendFetch(address, ...args));
+            n._cache.valueFetch(ck, fetchHow);
         }
 
-        // Return the unlistener
         return listenerRemoval;
     };
 
@@ -268,23 +280,49 @@ export const udpOSCControllerNew = (ip, port, bindAddress) => {
         if (!n._socket || !address) return;
 
         const wireValue = (translateValue !== undefined) ? translateValue(value) : value;
+        const ck = cacheKey || address;
 
         // Pace outbound sets like get/fetch — immediate send bursts choke the desk
         n.send(address, wireValue);
 
-        // Cache always stores domain values (same unit as read/get callbacks).
+        // Cache stores wire (native OSC). Drivers translate at read/get/set boundaries.
         if (!omitCache) {
-            n._cache.valueSet(cacheKey || address, value);
+            n._cache.valueSet(ck, wireValue, { fromSet: true });
         }
 
-        // Optimistic update: notify subscribers with domain value, not wire format.
-        if (n._listeners[address]) {
-            Object.values(n._listeners[address].callbacks).forEach(c => c(value));
-        }
+        n._messageReceived({ address, values: [wireValue] }, { origin: 'local' });
+    };
+
+
+    // Multi-address set: update all cache entries before notifying listeners so composite
+    // reads (e.g. bus input id from rtnsw + insrc) stay coherent.
+    n.setBatch = (entries) => {
+        if (!n._socket || !entries?.length) return;
+
+        const prepared = entries.map(({
+            address, value, translateValue, omitCache, cacheKey,
+        }) => {
+            const wireValue = (translateValue !== undefined) ? translateValue(value) : value;
+            const ck = cacheKey || address;
+            if (!omitCache) {
+                n._cache.valueSet(ck, wireValue, { fromSet: true });
+            }
+            return { address, wireValue };
+        });
+
+        prepared.forEach(({ address, wireValue }) => {
+            n.send(address, wireValue);
+        });
+
+        prepared.forEach(({ address, wireValue }) => {
+            n._messageReceived({ address, values: [wireValue] }, { origin: 'local' });
+        });
     };
 
 
     n.sendQueueDrained = () => n._sendQueue.drained();
+
+    n.sendQueueOutstanding = () => n._sendQueue.outstanding;
 
 
     n.subscribe = (subscription, onValueGotten, translateValue) => {
@@ -344,7 +382,9 @@ export const udpOSCControllerNew = (ip, port, bindAddress) => {
 
 
     n.halt = async () => {
+        await n._sendQueue.drained();
         n._halted = true;
+        n._cache.pauseKeepFresh();
         Object.values(n._subscriptions).forEach((l) => {
             if (!l.renewalInterval) return;
             clearInterval(l.renewalInterval);
@@ -356,6 +396,7 @@ export const udpOSCControllerNew = (ip, port, bindAddress) => {
 
     n.resume = async () => {
         n._halted = false;
+        n._cache.resumeKeepFresh();
         if (!n._socket) await n.open();
         Object.values(n._subscriptions).forEach((l) => {
             if (l.renewalInterval) return;

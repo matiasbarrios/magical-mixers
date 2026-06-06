@@ -11,6 +11,8 @@ const tapOptions = [
     { id: 1, name: 'Post level' },
 ];
 
+const monitorTapPostLevelId = tapOptions.find(o => o.name === 'Post level').id;
+
 const sourceIdBusReceptionOnly = { id: 0, name: 'Bus reception only' };
 
 const sourceIdOptions = [
@@ -71,22 +73,24 @@ const channelLineEffectTapGet = get => (busId, c) => get(oscChannelLineEffectTap
 const secondaryTapGet = get => (busId, c) => get(oscSecondaryTap(busId), c);
 
 
-// Exported
-export {
-    channelLineEffectTapGet as monitorChannelLineEffectTapGet,
-    secondaryTapGet as monitorSecondaryTapGet,
-};
+const monitorChannelLineEffectTapRead = read => busId => read(oscChannelLineEffectTap(busId));
 
 
-export const monitorChannelLineEffectTapIsPostLevel = (read,
-    busId) => read(oscChannelLineEffectTap(busId)) === tapOptions[1].id;
+const monitorSecondaryTapRead = read => busId => read(oscSecondaryTap(busId));
 
 
-export const monitorSecondaryTapIsPostLevel = (read,
-    busId) => read(oscSecondaryTap(busId)) === tapOptions[1].id;
+const isTapPostLevel = tap => tap === monitorTapPostLevelId;
 
 
-export const monitor = ({ read, get, set }) => ({
+const monitorChannelLineEffectTapIsPostLevel = (read,
+    busId) => isTapPostLevel(monitorChannelLineEffectTapRead(read)(busId));
+
+
+const monitorSecondaryTapIsPostLevel = (read,
+    busId) => isTapPostLevel(monitorSecondaryTapRead(read)(busId));
+
+
+const monitor = ({ read, get, set }) => ({
     has: (busId, c) => { c(monitorHas(busId)); },
     mono: {
         has: (busId, c) => { c(monitorHas(busId)); },
@@ -168,3 +172,15 @@ export const monitor = ({ read, get, set }) => ({
         },
     },
 });
+
+
+export {
+    channelLineEffectTapGet as monitorChannelLineEffectTapGet,
+    secondaryTapGet as monitorSecondaryTapGet,
+    monitorChannelLineEffectTapRead,
+    monitorSecondaryTapRead,
+    isTapPostLevel,
+    monitorChannelLineEffectTapIsPostLevel,
+    monitorSecondaryTapIsPostLevel,
+    monitor,
+};

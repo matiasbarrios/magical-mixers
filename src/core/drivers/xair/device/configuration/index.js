@@ -20,12 +20,12 @@ const categories = [
 
 
 // Exported
-export const configuration = ({ read, get, set }) => {
+export const configuration = ({ read, get, set, setBatch }) => {
     const res = {
         device: device({ read, get, set }),
         networkAccessPoint: networkAccessPoint({ read, get, set }),
-        networkWifiClient: networkWifiClient({ read, get, set }),
-        networkLan: networkLan({ read, get, set }),
+        networkWifiClient: networkWifiClient({ read, get, set, setBatch }),
+        networkLan: networkLan({ read, get, set, setBatch }),
         audio: audio({ read, get, set }),
         midi: midi({ read, get, set }),
     };

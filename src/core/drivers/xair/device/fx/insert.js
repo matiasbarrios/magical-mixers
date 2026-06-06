@@ -84,9 +84,20 @@ const assignmentGet = (read, get, sideAssignmentToFxId) => (fxId, c) => {
 };
 
 
-const assignmentSet = (read, get, set, sideAssignmentToFxId) => (fxId, newBusId) => {
+const assignmentSet = (
+    read, get, set, setBatch, sideAssignmentToFxId
+) => (fxId, newBusId) => {
     let alreadySet = false;
     let toUnlisten = null;
+
+    const flushWrites = (writes) => {
+        if (!writes.length) return;
+        if (writes.length === 1 || !setBatch) {
+            writes.forEach(({ address, value }) => set(address, value));
+        } else {
+            setBatch(writes);
+        }
+    };
 
     const onGotten = (previousBusId) => {
         if (alreadySet) return;
@@ -94,17 +105,19 @@ const assignmentSet = (read, get, set, sideAssignmentToFxId) => (fxId, newBusId)
 
         if (toUnlisten) toUnlisten();
 
-        if (previousBusId !== null) {
-            set(busOscInsertAssignment(previousBusId), unassignedFX);
-        }
-
         let fxValue = (newBusId !== null && busIsOfType(newBusId, 'main'))
             ? objectFlip(stereoAssignmentToFxId)
             : objectFlip(sideAssignmentToFxId);
         fxValue = parseInt(fxValue[fxId] || unassignedFX, 10);
-        if (newBusId !== null) {
-            set(busOscInsertAssignment(newBusId), fxValue);
+
+        const writes = [];
+        if (previousBusId !== null) {
+            writes.push({ address: busOscInsertAssignment(previousBusId), value: unassignedFX });
         }
+        if (newBusId !== null) {
+            writes.push({ address: busOscInsertAssignment(newBusId), value: fxValue });
+        }
+        flushWrites(writes);
     };
 
     toUnlisten = assignmentGet(read, get, sideAssignmentToFxId)(fxId, onGotten);
@@ -112,7 +125,7 @@ const assignmentSet = (read, get, set, sideAssignmentToFxId) => (fxId, newBusId)
 
 
 // Exported
-export const insert = ({ read, get, set }) => ({
+export const insert = ({ read, get, set, setBatch }) => ({
     has: (fxId, c) => { c(true); },
     on: {
         has: (fxId, c) => { c(true); },
@@ -124,7 +137,9 @@ export const insert = ({ read, get, set }) => ({
         has: (fxId, c) => { c(true); },
         read: assignmentRead(read, leftAssignmentToFxId),
         get: assignmentGet(read, get, leftAssignmentToFxId),
-        set: assignmentSet(read, get, set, leftAssignmentToFxId),
+        set: assignmentSet(
+            read, get, set, setBatch, leftAssignmentToFxId
+        ),
         // eslint-disable-next-line no-unused-vars
         options: fxId => options,
         // eslint-disable-next-line no-unused-vars
@@ -134,7 +149,9 @@ export const insert = ({ read, get, set }) => ({
         has: (fxId, c) => { c(true); },
         read: assignmentRead(read, rightAssignmentToFxId),
         get: assignmentGet(read, get, rightAssignmentToFxId),
-        set: assignmentSet(read, get, set, rightAssignmentToFxId),
+        set: assignmentSet(
+            read, get, set, setBatch, rightAssignmentToFxId
+        ),
         // eslint-disable-next-line no-unused-vars
         options: fxId => options,
         // eslint-disable-next-line no-unused-vars
