@@ -4,9 +4,9 @@
 
 An open-source engine for communicating with digital mixers in Node.js.
 
-This library is the **core communication layer** behind [Magical Mixing Console](https://magicalmixingconsole.com), a cross-platform application for remote control of digital mixers. It is designed to be reusable in other tools or custom workflows that need to interact with compatible digital audio consoles.
+This library is the **core communication layer** in [Magical Mixing Console](https://github.com/matiasbarrios/magical-mixing-console), a cross-platform open source application for remote control of digital mixers. It is designed to be reusable in other tools or custom workflows that need to interact with compatible digital audio consoles.
 
-Built and maintained with ❤️ by Matías Barrios in Piriápolis, Uruguay 🇺🇾. Aguante la música ✨
+Built with ❤️ by Matías Barrios in Piriápolis, Uruguay 🇺🇾. Aguante la música ✨
 
 
 ## Features
@@ -15,7 +15,7 @@ Built and maintained with ❤️ by Matías Barrios in Piriápolis, Uruguay 🇺
 - 🔌 Communication with digital mixers over LAN/WLAN.
 - ⚡ Real-time bidirectional message handling.
 - 🧱 Modular structure for easy extension and customization.
-- 🧰 Used in production by [Magical Mixing Console](https://github.com/matiasbarrios/magical-mixing-console-releases).
+- 🧰 Used in production by [Magical Mixing Console](https://github.com/matiasbarrios/magical-mixing-console).
 
 
 ## Supported Mixers
