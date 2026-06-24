@@ -11,7 +11,7 @@ import { options } from './options.js';
 // Exported
 export const scene = ({ read, get, set }) => ({
     has: (c) => { c(true); },
-    name: name({ read, get, set }),
+    name: name({ read, get }),
     scope: scope({ read, get, set }),
     active: active({ read, get }),
     ...save({ set }),

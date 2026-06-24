@@ -53,8 +53,17 @@ const openBoundSocket = async (onMessageReceived, bindAddress, targetIp, enableB
 };
 
 
+// Variables
+let cacheMaxEntries = null;
+
+
 // Exported
 export const udpOSCSetProvider = udpSetProvider;
+
+
+export const udpOSCSetCacheConfig = ({ maxEntries } = {}) => {
+    cacheMaxEntries = maxEntries ?? null;
+};
 
 
 export const udpOSCControllerNew = (ip, port, bindAddress) => {
@@ -430,6 +439,7 @@ export const udpOSCControllerNew = (ip, port, bindAddress) => {
 
     // Initialize
     n._cache = cacheNew({
+        maxEntries: cacheMaxEntries ?? undefined,
         onEvict: (_key, entry) => {
             n._removeListenerIfIdle(entry.oscAddress || _key);
         },

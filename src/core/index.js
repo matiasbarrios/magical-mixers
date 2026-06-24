@@ -1,14 +1,14 @@
 // Requirements
 import { nodePlatform } from '../platforms/index.js';
 import { lanSetProvider } from './helpers/lan.js';
-import { udpOSCSetProvider } from './controllers/udpOSC/index.js';
+import { udpOSCSetProvider, udpOSCSetCacheConfig } from './controllers/udpOSC/index.js';
 
 
 // Exported
 export { searchNew } from './devices/search.js';
 
 
-export const initialize = (platform) => {
+export const initialize = (platform, { cacheMaxEntries } = {}) => {
     const p = platform || nodePlatform;
     lanSetProvider({
         getLANBroadcastAddress: p.getLANBroadcastAddress,
@@ -20,4 +20,7 @@ export const initialize = (platform) => {
         udpMessageSend: p.udpMessageSend,
         onUDPMessageReceived: p.onUDPMessageReceived,
     });
+    if (cacheMaxEntries != null) {
+        udpOSCSetCacheConfig({ maxEntries: cacheMaxEntries });
+    }
 };

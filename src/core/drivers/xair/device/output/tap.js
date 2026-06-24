@@ -18,6 +18,14 @@ const tapOptions = [
 ];
 
 
+// Internal
+const defaultOption = (outputId) => {
+    const o = outputGet(outputId);
+    if (o.type === 'usb' || o.type === 'ultranet') return tapOptions[2];
+    return tapOptions[10];
+};
+
+
 // Exported
 export const tap = ({ read, get, set }) => ({
     has: (outputId, c) => { c(['usb', 'ultranet', 'analog'].includes(outputGet(outputId).type)); },
@@ -26,6 +34,5 @@ export const tap = ({ read, get, set }) => ({
     set: (outputId, v) => set(`${outputOsc(outputId)}pos`, v),
     // eslint-disable-next-line no-unused-vars
     options: outputId => tapOptions,
-    // eslint-disable-next-line no-unused-vars
-    defaultOption: outputId => tapOptions[3],
+    defaultOption,
 });

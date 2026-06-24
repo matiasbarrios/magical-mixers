@@ -1,5 +1,6 @@
 // Requirements
 import { initialize } from '../core/index.js';
+import { nodePlatform } from '../platforms/index.js';
 import { isValidIP, isValidPort } from '../core/helpers/values.js';
 import { runManualConnectTest, MANUAL_CONNECT_TEST_TARGET } from './manual-connect-test.js';
 
@@ -17,12 +18,13 @@ const main = async () => {
         process.exit(1);
     }
 
-    initialize();
+    initialize(nodePlatform);
 
     try {
         await runManualConnectTest({
             ip,
             port,
+            platform: nodePlatform,
             platformLabel: 'node-dgram (platforms/node)',
             keepSessionOpen: false,
         });

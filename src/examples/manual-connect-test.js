@@ -31,11 +31,22 @@ const logNetworkContext = (ip, platformLabel) => {
     log('getLANInterfaces', getLANInterfaces());
 };
 
+const attachUdpErrorLogger = (platform) => {
+    if (!platform?.onUDPError) {
+        log('platform.onUDPError not available — UDP send errors may only appear in platform logs');
+        return () => {};
+    }
+
+    return platform.onUDPError((error, socketId) => {
+        logError('UDP error', { error, socketId });
+    });
+};
+
 
 /**
  * Manual-connect probe through mixers only (no GUI).
  *
- * Caller must call initialize() first so helpers/lan.js and
+ * Caller must call initialize(platform) first so helpers/lan.js and
  * controllers/udpOSC/udp.js use the supplied platform primitives.
  *
  * Mirrors connect screen: search.inIPPort → getFound → connect.
@@ -43,12 +54,19 @@ const logNetworkContext = (ip, platformLabel) => {
 const runManualConnectTest = async ({
     ip = MANUAL_CONNECT_TEST_TARGET.ip,
     port = MANUAL_CONNECT_TEST_TARGET.port,
-    platformLabel = 'node',
+    platform,
+    platformLabel = 'injected',
     keepSessionOpen = false,
 } = {}) => {
+    if (!platform) {
+        throw new Error('runManualConnectTest requires a platform object — call initialize(platform) first');
+    }
+
     log('=== manual connect test start ===');
 
     logNetworkContext(ip, platformLabel);
+
+    const detachUdpError = attachUdpErrorLogger(platform);
 
     const search = searchNew();
     let device = null;
@@ -89,6 +107,8 @@ const runManualConnectTest = async ({
     try {
         await search.inIPPort(ip, port, onFound, onNotFound);
     } finally {
+        if (detachUdpError) detachUdpError();
+
         if (device && !keepSessionOpen) {
             await device.dispose();
             log('device disposed');
