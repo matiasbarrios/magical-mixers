@@ -1,0 +1,61 @@
+name: Feature request
+description: A scoped improvement or new capability
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Early ideas and “support mixer X” proposals work better in [Ideas Discussions](https://github.com/matiasbarrios/magical-mixers/discussions/categories/ideas) first.
+
+        Open an issue when the scope is clear enough to implement or track.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or motivation
+      description: What pain point does this solve for library users or driver authors?
+      placeholder: "When building a custom app, it's hard to ..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What should change? Public API, driver, OSC handling, virtual device?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: layer
+    attributes:
+      label: Primary layer
+      options:
+        - src/core/drivers/ (OSC, new desk family)
+        - src/core/controllers/udpOSC
+        - src/core/helpers/
+        - src/virtual-device/
+        - Public API / exports
+        - Docs / tooling
+        - Other
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope notes
+      options:
+        - label: This may require changes in `src/core/drivers/`
+        - label: This affects OSC/UDP protocol handling
+        - label: This may change the public npm API
+        - label: I am willing to open a PR for this
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches you thought about
+    validations:
+      required: false

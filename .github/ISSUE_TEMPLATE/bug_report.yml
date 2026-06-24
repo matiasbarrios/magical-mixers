@@ -1,0 +1,99 @@
+name: Bug report
+description: Something broken in the library, drivers, or build
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Questions and setup help belong in [Q&A Discussions](https://github.com/matiasbarrios/magical-mixers/discussions/categories/q-a), not here.
+
+        Include steps to reproduce and how you consumed the library (local dev, npm install, etc.).
+
+  - type: dropdown
+    id: context
+    attributes:
+      label: Usage context
+      options:
+        - Local development (this repo)
+        - npm package consumer
+        - virtual-device (npm run x18)
+        - CLI (x18-mixer)
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: npm version or git commit SHA
+      placeholder: "1.4.0 or abc1234"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: mixer
+    attributes:
+      label: Mixer (if applicable)
+      options:
+        - Not applicable / build-only
+        - Virtual X18
+        - X18 / XR18 / MR18 (or v2)
+        - XR16 (or v2)
+        - XR12 / MR12 (or v2)
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Minimal steps from a clean start, if possible
+      placeholder: |
+        1. npm run x18
+        2. node src/examples/busName.js 127.0.0.1 10024
+        3. Set main bus name
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / packet captures
+      description: Console output, Wireshark notes, or relevant OSC messages
+      render: shell
+    validations:
+      required: false
+
+  - type: dropdown
+    id: layer
+    attributes:
+      label: Suspected layer (optional)
+      options:
+        - Unknown
+        - src/core/drivers/
+        - src/core/controllers/udpOSC
+        - src/core/helpers/
+        - src/virtual-device/
+        - Build / packaging
+        - Examples
+        - Other
+    validations:
+      required: false

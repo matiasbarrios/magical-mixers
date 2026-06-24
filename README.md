@@ -247,12 +247,10 @@ Coming soon – in the meantime, see the source code and join the [Discord](http
 
 ## Contributing
 
-Contributions are welcome! If you find a bug or want to request a feature, please open an issue or pull request.
-Also feel free to use the discussion board or join our [Discord](https://discord.gg/Zw3b4DEqbM) server for help and collaboration.
+Questions and architecture help → [Discussions](https://github.com/matiasbarrios/magical-mixers/discussions). Bugs and scoped work → [Issues](https://github.com/matiasbarrios/magical-mixers/issues/new/choose). You can also join our [Discord](https://discord.gg/Zw3b4DEqbM) server.
 
+See **[CONTRIBUTING.md](CONTRIBUTING.md)** for setup, layer guide, tests, and PR notes. This project follows the [Contributor Covenant](CODE_OF_CONDUCT.md).
 
 ## License
 
-Apache License 2.0 © 2025 Matías Barrios  
-Piriápolis, Uruguay 🇺🇾  
-📧 matias@magicalmixingconsole.com
+Apache License 2.0 — see [LICENSE](LICENSE).

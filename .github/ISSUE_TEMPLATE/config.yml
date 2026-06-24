@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions & help
+    url: https://github.com/matiasbarrios/magical-mixers/discussions/categories/q-a
+    about: API usage, build setup, OSC/UDP, or drivers — ask the community.
+  - name: Ideas & proposals
+    url: https://github.com/matiasbarrios/magical-mixers/discussions/categories/ideas
+    about: Brainstorm new mixers, drivers, or features before opening an issue.
+  - name: Show and tell
+    url: https://github.com/matiasbarrios/magical-mixers/discussions/categories/show-and-tell
+    about: Share an integration, experiment, or downstream app.
