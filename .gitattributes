@@ -1,1 +1,2 @@
 tools/*.bat -text
+tools/*.command text eol=lf
