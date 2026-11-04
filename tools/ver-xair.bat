@@ -10,7 +10,7 @@ echo No instala nada. Tarda unos 20 segundos.
 echo Si Windows muestra un cartel del firewall, hace clic en Permitir.
 echo.
 set "SCRIPT=%~f0"
-powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((Get-Content -LiteralPath $env:SCRIPT -Raw) -split '###POWERSHELL###',2)[1]"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$t = Get-Content -LiteralPath $env:SCRIPT -Raw; $m = '###POWERSHELL###'; iex $t.Substring($t.LastIndexOf($m) + $m.Length)"
 echo.
 echo ============================================================
 echo Copia TODO el texto de esta ventana, o saca una captura, y mandalo.
