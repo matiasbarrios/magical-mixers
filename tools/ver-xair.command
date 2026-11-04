@@ -1,19 +1,19 @@
 #!/bin/bash
-# Diagnostico para consolas X Air / M Air.
-# Envia /xinfo por UDP al puerto 10024 y muestra la respuesta cruda.
-# No instala nada: usa el perl que ya trae macOS.
-# En Terminal: bash ver-xair.command
+# Diagnostic for X Air / M Air consoles.
+# Sends /xinfo over UDP to port 10024 and prints the raw reply.
+# Installs nothing: uses the perl that already ships with macOS.
+# In Terminal: bash ver-xair.command
 echo
-echo "Busca la consola en la red y muestra lo que responde."
-echo "No instala nada. Tarda unos 20 segundos."
-echo "Si macOS muestra un cartel del firewall, hace clic en Permitir."
+echo "Looks for the console on the network and shows what it replies."
+echo "Installs nothing. Takes about 20 seconds."
+echo "If macOS shows a firewall prompt, click Allow."
 echo
 /usr/bin/perl -x "$0"
 echo
 echo "============================================================"
-echo "Copia TODO el texto de esta ventana y mandalo."
+echo "Copy ALL the text in this window and send it."
 echo "============================================================"
-read -r -p "Apreta Enter para cerrar... "
+read -r -p "Press Enter to close... "
 exit
 
 #!perl
@@ -38,13 +38,13 @@ if ($host eq '') {
 }
 my $os = `sw_vers -productVersion 2>/dev/null`;
 chomp $os;
-print "Equipo: $host\n";
+print "Computer: $host\n";
 print "macOS: $os\n\n";
 
 my @targets;
 my $iface = '';
 my $up = 0;
-open my $ifconfig, '-|', '/sbin/ifconfig', '-a' or die "No pude leer las redes: $!\n";
+open my $ifconfig, '-|', '/sbin/ifconfig', '-a' or die "Could not read the networks: $!\n";
 while (<$ifconfig>) {
     if (/^(\S+): flags=\d+<([^>]*)>/) {
         $iface = $1;
@@ -67,21 +67,21 @@ close $ifconfig;
 
 if (!@targets) {
     @targets = ({
-        name => 'todas',
+        name => 'all',
         local => '0.0.0.0',
         broadcast => '255.255.255.255',
     });
 }
 
-print "Redes:\n";
+print "Networks:\n";
 for my $target (@targets) {
-    my $broadcast = $target->{broadcast} eq '' ? '(ninguno)' : $target->{broadcast};
+    my $broadcast = $target->{broadcast} eq '' ? '(none)' : $target->{broadcast};
     print "  $target->{name}\n";
-    print "    esta compu: $target->{local}\n";
+    print "    this computer: $target->{local}\n";
     print "    broadcast:  $broadcast\n";
 }
 print "\n";
-print "Enviando /xinfo al puerto $PORT durante $SECONDS segundos...\n\n";
+print "Sending /xinfo to port $PORT for $SECONDS seconds...\n\n";
 
 my @sockets;
 for my $target (@targets) {
@@ -93,7 +93,7 @@ for my $target (@targets) {
         ReuseAddr => 1,
     );
     if (!$socket) {
-        print "No pude abrir la red $target->{local}: $!\n";
+        print "Could not open network $target->{local}: $!\n";
         next;
     }
     $socket->sockopt(SO_BROADCAST, 1);
@@ -101,14 +101,14 @@ for my $target (@targets) {
 }
 
 if (!@sockets) {
-    print "No se pudo abrir ninguna red. No hay nada que mostrar.\n";
+    print "Could not open any network. Nothing to show.\n";
     exit 0;
 }
 
 sub show_packet {
     my ($ip, $port, $buf) = @_;
-    print "----- respuesta -----\n";
-    print "de $ip:$port   " . length($buf) . " bytes\n";
+    print "----- reply -----\n";
+    print "from $ip:$port   " . length($buf) . " bytes\n";
     my @strings;
     my $current = '';
     for my $byte (unpack('C*', $buf)) {
@@ -126,7 +126,7 @@ sub show_packet {
     push @strings, $current if length $current;
     for my $i (0 .. $#strings) {
         my $text = $strings[$i];
-        print "  [$i] '$text'  largo=" . length($text) . "\n";
+        print "  [$i] '$text'  length=" . length($text) . "\n";
     }
     my $hex = join ' ', map { sprintf('%02X', $_) } unpack('C*', $buf);
     print "hex: $hex\n\n";
@@ -154,7 +154,7 @@ while (time < $end) {
                 my $addr = inet_aton($dest);
                 if (!$addr) {
                     if (!$announced{$announce_key}) {
-                        print "error enviando a $dest desde $target->{local}: direccion invalida\n";
+                        print "error sending to $dest from $target->{local}: invalid address\n";
                         $announced{$announce_key} = 1;
                     }
                     next;
@@ -162,11 +162,11 @@ while (time < $end) {
                 my $sent = $socket->send($xinfo, 0, pack_sockaddr_in($PORT, $addr));
                 if (!defined $sent) {
                     if (!$announced{$announce_key}) {
-                        print "error enviando a $dest desde $target->{local}: $!\n";
+                        print "error sending to $dest from $target->{local}: $!\n";
                         $announced{$announce_key} = 1;
                     }
                 } elsif (!$announced{$announce_key}) {
-                    print "enviado /xinfo a $dest:$PORT desde $target->{local}\n";
+                    print "sent /xinfo to $dest:$PORT from $target->{local}\n";
                     $announced{$announce_key} = 1;
                 }
             }
@@ -177,7 +177,7 @@ while (time < $end) {
     if (time - $last_tick >= 5) {
         my $left = $end - time;
         $left = 0 if $left < 0;
-        print "sigo buscando... ${left}s\n";
+        print "still looking... ${left}s\n";
         $last_tick = time;
     }
 
@@ -208,12 +208,12 @@ for my $entry (@sockets) {
 print "\n";
 my $count = scalar keys %seen;
 if ($count == 0) {
-    print "No llego ninguna respuesta.\n";
-    print "Revisa esto y volve a ejecutar el archivo:\n";
-    print "  - la compu tiene que estar en la misma red que la consola\n";
-    print "  - la consola tiene que estar encendida\n";
-    print "  - si aparecio un cartel de firewall, elegi Permitir y ejecuta de nuevo\n";
+    print "No reply arrived.\n";
+    print "Check this and run the file again:\n";
+    print "  - the computer has to be on the same network as the console\n";
+    print "  - the console has to be powered on\n";
+    print "  - if a firewall prompt appeared, choose Allow and run it again\n";
 } else {
-    print "Listo. Llegaron $count respuesta(s).\n";
-    print "Copia todo el texto de esta ventana y mandalo.\n";
+    print "Done. $count reply(ies) arrived.\n";
+    print "Copy all the text in this window and send it.\n";
 }

@@ -1,19 +1,19 @@
 @echo off
-rem Diagnostico para consolas X Air / M Air.
-rem Envia /xinfo por UDP al puerto 10024 y muestra la respuesta cruda.
-rem No instala nada: usa el PowerShell que ya trae Windows 10 y 11.
-rem Uso: doble clic. La compu y la consola tienen que estar en la misma red.
-title Ver respuesta X Air
+rem Diagnostic for X Air / M Air consoles.
+rem Sends /xinfo over UDP to port 10024 and prints the raw reply.
+rem Installs nothing: uses the PowerShell that already ships with Windows 10 and 11.
+rem Usage: double-click. The computer and the console have to be on the same network.
+title View X Air reply
 echo.
-echo Busca la consola en la red y muestra lo que responde.
-echo No instala nada. Tarda unos 20 segundos.
-echo Si Windows muestra un cartel del firewall, hace clic en Permitir.
+echo Looks for the console on the network and shows what it replies.
+echo Installs nothing. Takes about 20 seconds.
+echo If Windows shows a firewall prompt, click Allow.
 echo.
 set "SCRIPT=%~f0"
 powershell -NoProfile -ExecutionPolicy Bypass -Command "$t = Get-Content -LiteralPath $env:SCRIPT -Raw; $m = '###POWERSHELL###'; iex $t.Substring($t.LastIndexOf($m) + $m.Length)"
 echo.
 echo ============================================================
-echo Copia TODO el texto de esta ventana, o saca una captura, y mandalo.
+echo Copy ALL the text in this window, or take a screenshot, and send it.
 echo ============================================================
 pause
 goto :eof
@@ -35,7 +35,7 @@ function Get-BroadcastAddress([string]$ip, [string]$mask) {
     return ($octets -join '.')
 }
 
-Write-Host "Equipo: $env:COMPUTERNAME"
+Write-Host "Computer: $env:COMPUTERNAME"
 Write-Host "Windows: $([Environment]::OSVersion.VersionString)"
 Write-Host ""
 
@@ -43,7 +43,7 @@ $targets = @()
 try {
     $cfgs = @(Get-CimInstance Win32_NetworkAdapterConfiguration -ErrorAction Stop | Where-Object { $_.IPEnabled -and $_.IPAddress })
 } catch {
-    Write-Host "No pude leer las redes: $($_.Exception.Message)"
+    Write-Host "Could not read the networks: $($_.Exception.Message)"
     $cfgs = @()
 }
 
@@ -74,18 +74,18 @@ if ($targets.Count -eq 0) {
     $targets = @([pscustomobject]@{
         Local = '0.0.0.0'
         Broadcast = '255.255.255.255'
-        Desc = 'todas'
+        Desc = 'all'
     })
 }
 
-Write-Host "Redes:"
+Write-Host "Networks:"
 foreach ($target in $targets) {
     Write-Host ("  {0}" -f $target.Desc)
-    Write-Host ("    esta compu: {0}" -f $target.Local)
+    Write-Host ("    this computer: {0}" -f $target.Local)
     Write-Host ("    broadcast:  {0}" -f $target.Broadcast)
 }
 Write-Host ""
-Write-Host "Enviando /xinfo al puerto $Port durante $Seconds segundos..."
+Write-Host "Sending /xinfo to port $Port for $Seconds seconds..."
 Write-Host ""
 
 $sockets = @()
@@ -107,18 +107,18 @@ foreach ($target in $targets) {
         $udp.Client.ReceiveTimeout = 250
         $sockets += [pscustomobject]@{ Udp = $udp; Target = $target }
     } catch {
-        Write-Host ("No pude abrir la red {0}: {1}" -f $target.Local, $_.Exception.Message)
+        Write-Host ("Could not open network {0}: {1}" -f $target.Local, $_.Exception.Message)
     }
 }
 
 if ($sockets.Count -eq 0) {
-    Write-Host "No se pudo abrir ninguna red. No hay nada que mostrar."
+    Write-Host "Could not open any network. Nothing to show."
     return
 }
 
 function Show-Packet($remote, [byte[]]$buf) {
-    Write-Host "----- respuesta -----"
-    Write-Host ("de {0}:{1}   {2} bytes" -f $remote.Address, $remote.Port, $buf.Length)
+    Write-Host "----- reply -----"
+    Write-Host ("from {0}:{1}   {2} bytes" -f $remote.Address, $remote.Port, $buf.Length)
     $current = New-Object System.Text.StringBuilder
     $strings = New-Object System.Collections.Generic.List[string]
     foreach ($byte in $buf) {
@@ -136,7 +136,7 @@ function Show-Packet($remote, [byte[]]$buf) {
     if ($current.Length -gt 0) { $strings.Add($current.ToString()) }
     for ($i = 0; $i -lt $strings.Count; $i++) {
         $text = $strings[$i]
-        Write-Host ("  [{0}] '{1}'  largo={2}" -f $i, $text, $text.Length)
+        Write-Host ("  [{0}] '{1}'  length={2}" -f $i, $text, $text.Length)
     }
     $hex = ($buf | ForEach-Object { '{0:X2}' -f $_ }) -join ' '
     Write-Host "hex: $hex"
@@ -159,12 +159,12 @@ while ((Get-Date) -lt $end) {
                     $destEndPoint = New-Object System.Net.IPEndPoint ([System.Net.IPAddress]::Parse([string]$dest), $Port)
                     [void]$socket.Udp.Send($xinfo, $xinfo.Length, $destEndPoint)
                     if (-not $announced.ContainsKey($announceKey)) {
-                        Write-Host ("enviado /xinfo a {0}:{1} desde {2}" -f $dest, $Port, $socket.Target.Local)
+                        Write-Host ("sent /xinfo to {0}:{1} from {2}" -f $dest, $Port, $socket.Target.Local)
                         $announced[$announceKey] = $true
                     }
                 } catch {
                     if (-not $announced.ContainsKey($announceKey)) {
-                        Write-Host ("error enviando a {0} desde {1}: {2}" -f $dest, $socket.Target.Local, $_.Exception.Message)
+                        Write-Host ("error sending to {0} from {1}: {2}" -f $dest, $socket.Target.Local, $_.Exception.Message)
                         $announced[$announceKey] = $true
                     }
                 }
@@ -176,7 +176,7 @@ while ((Get-Date) -lt $end) {
     if (((Get-Date) - $lastTick).TotalSeconds -ge 5) {
         $left = [int]($end - (Get-Date)).TotalSeconds
         if ($left -lt 0) { $left = 0 }
-        Write-Host ("sigo buscando... {0}s" -f $left)
+        Write-Host ("still looking... {0}s" -f $left)
         $lastTick = Get-Date
     }
 
@@ -201,12 +201,12 @@ foreach ($socket in $sockets) {
 
 Write-Host ""
 if ($seen.Count -eq 0) {
-    Write-Host "No llego ninguna respuesta."
-    Write-Host "Revisa esto y volve a ejecutar el archivo:"
-    Write-Host "  - la compu tiene que estar en la misma red que la consola"
-    Write-Host "  - la consola tiene que estar encendida"
-    Write-Host "  - si aparecio un cartel de firewall, elegi Permitir y ejecuta de nuevo"
+    Write-Host "No reply arrived."
+    Write-Host "Check this and run the file again:"
+    Write-Host "  - the computer has to be on the same network as the console"
+    Write-Host "  - the console has to be powered on"
+    Write-Host "  - if a firewall prompt appeared, choose Allow and run it again"
 } else {
-    Write-Host ("Listo. Llegaron {0} respuesta(s)." -f $seen.Count)
-    Write-Host "Copia todo el texto de esta ventana y mandalo."
+    Write-Host ("Done. {0} reply(ies) arrived." -f $seen.Count)
+    Write-Host "Copy all the text in this window and send it."
 }
