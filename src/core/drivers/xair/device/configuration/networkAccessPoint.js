@@ -1,56 +1,81 @@
+// Requirements
+import { wifiSecurityIsExtended } from './wifiSecurity.js';
+
+
+// Internal
+const securityOptions = [
+    { name: 'Open', value: 0 },
+    { name: 'WEP', value: 1 },
+];
+
+
+const securityOptionsExtended = [
+    ...securityOptions,
+    { name: 'WPA', value: 2 },
+    { name: 'WPA2', value: 3 },
+];
+
+
 // Exported
-export const networkAccessPoint = ({ read, get, set }) => ({
-    ssid: {
-        name: 'SSID',
-        type: 'string',
-        maxLength: 32,
-        has: (c) => { c(true); },
-        read: () => read('/-prefs/ap/ssid'),
-        get: c => get('/-prefs/ap/ssid', c),
-        set: v => set('/-prefs/ap/ssid', v),
-    },
-    channel: {
-        name: 'Channel',
-        type: 'select',
-        options: [
-            { name: '1', value: 1 },
-            { name: '2', value: 2 },
-            { name: '3', value: 3 },
-            { name: '4', value: 4 },
-            { name: '5', value: 5 },
-            { name: '6', value: 6 },
-            { name: '7', value: 7 },
-            { name: '8', value: 8 },
-            { name: '9', value: 9 },
-            { name: '10', value: 10 },
-            { name: '11', value: 11 },
-        ],
-        has: (c) => { c(true); },
-        read: () => read('/-prefs/ap/channel'),
-        get: c => get('/-prefs/ap/channel', c),
-        set: v => set('/-prefs/ap/channel', v),
-    },
-    securityType: {
-        name: 'Security type',
-        type: 'select',
-        options: [
-            { name: 'Open', value: 0 },
-            { name: 'WEP', value: 1 },
-        ],
-        has: (c) => { c(true); },
-        read: () => read('/-prefs/ap/security'),
-        get: c => get('/-prefs/ap/security', c),
-        set: v => set('/-prefs/ap/security', v),
-    },
-    key: {
-        name: 'Password',
-        type: 'password',
-        minLength: 13,
-        maxLength: 13,
-        hideIf: values => values['networkAccessPoint-securityType'] === 0,
-        has: (c) => { c(true); },
-        read: () => read('/-prefs/ap/key'),
-        get: c => get('/-prefs/ap/key', c),
-        set: v => set('/-prefs/ap/key', v),
-    },
-});
+export const networkAccessPoint = ({
+    read, get, set, model, firmware,
+}) => {
+    const extended = wifiSecurityIsExtended(model, firmware);
+
+    return {
+        ssid: {
+            name: 'SSID',
+            type: 'string',
+            maxLength: 32,
+            has: (c) => { c(true); },
+            read: () => read('/-prefs/ap/ssid'),
+            get: c => get('/-prefs/ap/ssid', c),
+            set: v => set('/-prefs/ap/ssid', v),
+        },
+        channel: {
+            name: 'Channel',
+            type: 'select',
+            options: [
+                { name: '1', value: 1 },
+                { name: '2', value: 2 },
+                { name: '3', value: 3 },
+                { name: '4', value: 4 },
+                { name: '5', value: 5 },
+                { name: '6', value: 6 },
+                { name: '7', value: 7 },
+                { name: '8', value: 8 },
+                { name: '9', value: 9 },
+                { name: '10', value: 10 },
+                { name: '11', value: 11 },
+            ],
+            has: (c) => { c(true); },
+            read: () => read('/-prefs/ap/channel'),
+            get: c => get('/-prefs/ap/channel', c),
+            set: v => set('/-prefs/ap/channel', v),
+        },
+        securityType: {
+            name: 'Security type',
+            type: 'select',
+            options: extended ? securityOptionsExtended : securityOptions,
+            has: (c) => { c(true); },
+            read: () => read('/-prefs/ap/security'),
+            get: c => get('/-prefs/ap/security', c),
+            set: v => set('/-prefs/ap/security', v),
+        },
+        key: {
+            name: 'Password',
+            type: 'password',
+            minLength: extended
+                ? values => (values['networkAccessPoint-securityType'] === 1 ? 13 : 1)
+                : 13,
+            maxLength: extended
+                ? values => (values['networkAccessPoint-securityType'] === 1 ? 13 : 32)
+                : 13,
+            hideIf: values => values['networkAccessPoint-securityType'] === 0,
+            has: (c) => { c(true); },
+            read: () => read('/-prefs/ap/key'),
+            get: c => get('/-prefs/ap/key', c),
+            set: v => set('/-prefs/ap/key', v),
+        },
+    };
+};

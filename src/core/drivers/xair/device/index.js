@@ -65,7 +65,7 @@ export const xAirDeviceNew = (data) => {
     // Initialize
     n.initialize = async (onKeepAlive, initData = data) => {
         const {
-            ip, port, model, localAddress, searchSocket,
+            ip, port, model, firmware, localAddress, searchSocket,
         } = initData;
         const bindAddress = localAddress || getLocalAddressForIP(ip) || undefined;
 
@@ -94,7 +94,9 @@ export const xAirDeviceNew = (data) => {
             bus: bus({
                 read, get, set, setBatch, subscribe, model,
             }),
-            configuration: configuration({ read, get, set, setBatch }),
+            configuration: configuration({
+                read, get, set, setBatch, model, firmware,
+            }),
             dca: dca({
                 read, get, set, subscribe,
             }),

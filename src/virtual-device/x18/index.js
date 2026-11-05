@@ -360,7 +360,7 @@ export const x18Run = async (ip, port, platform) => {
         return;
     }
 
-    addressesValues['/xinfo'] = [listeningIp, deviceName, deviceModel, deviceFirmware];
+    addressesValues['/info'] = [listeningIp, deviceName, deviceModel, deviceFirmware];
 
     socketId = await provider.udpSocketOpen(listeningIp, listeningPort);
     console.log('Listening on', listeningIp, listeningPort);

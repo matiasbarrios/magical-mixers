@@ -28,7 +28,7 @@ export const xAirSubscriptionBuild = ({
     ],
     addressToListenTo: `/meters/${meterId}`,
     onResponse: xAirMetersRead(shortIntegersToRead),
-    renewal: metersRenewInterval || 9 * 1000, // 9 seconds
+    renewal: metersRenewInterval || 3 * 1000,
     unsubscribe: {
         address: '/unsubscribe',
         args: [`/meters/${meterId}`],

@@ -34,7 +34,7 @@ export const oscMessageSend = (callback, address, ...args) => {
     if (!address.startsWith('/xremotenfb')
         && !address.startsWith('/meters')
         && !address.startsWith('/status')
-        && !address.startsWith('/xinfo')) {
+        && !address.startsWith('/info')) {
         if (address.includes('undefined')) {
             console.error('oscMessageSend', message.address, message.args || '');
         }
@@ -61,7 +61,7 @@ export const oscMessageReceived = (buffer, callback) => {
 
     if (!address.startsWith('/status')
         && !address.startsWith('/meters')
-        && !address.startsWith('/xinfo')) {
+        && !address.startsWith('/info')) {
         // console.log('oscMessageReceived', address, values);
     }
 };

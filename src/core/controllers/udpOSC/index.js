@@ -44,7 +44,7 @@ const openBoundSocket = async (onMessageReceived, bindAddress, targetIp, enableB
         }
         try {
             return await udpSocketOpen(onMessageReceived, candidates[index], enableBroadcast);
-        } catch (error) {
+        } catch (error) { // eslint-disable-line no-unused-vars
             return tryCandidate(index + 1);
         }
     };
